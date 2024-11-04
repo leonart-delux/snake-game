@@ -1,6 +1,5 @@
 import random
 import pygame
-import logging
 
 class GameLogic:
     def __init__(self, ui, mode):

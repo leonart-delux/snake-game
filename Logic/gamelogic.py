@@ -1,5 +1,6 @@
 import random
 import pygame
+import logging
 
 class GameLogic:
     def __init__(self, ui, mode):
@@ -9,6 +10,7 @@ class GameLogic:
         self.clock = pygame.time.Clock()
         self.reset_game()
         self.mode = mode  
+        
     def reset_game(self):
         self.x1 = self.ui.width / 2
         self.y1 = self.ui.height / 2
@@ -18,11 +20,14 @@ class GameLogic:
         self.length_of_snake = 1
         self.game_over = False
         self.game_close = False
-        self.foodx = self.random_food()
-        self.foody = self.random_food()
+        self.foodx, self.foody = self.random_food()
 
     def random_food(self):
-        return round(random.randrange(0, self.ui.width - self.snake_block) / 10.0) * 10.0
+        while True:
+            foodx = round(random.randrange(0, self.ui.width - self.snake_block) / 10.0) * 10.0
+            foody = round(random.randrange(0, self.ui.height - self.snake_block) / 10.0) * 10.0
+            if (foodx, foody) not in self.snake_list: 
+                return foodx, foody
 
     def game_loop(self):
         while not self.game_over:
@@ -53,16 +58,16 @@ class GameLogic:
             if event.type == pygame.QUIT:
                 self.game_over = True
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_LEFT and self.x1_change != self.snake_block:
                     self.x1_change = -self.snake_block
                     self.y1_change = 0
-                elif event.key == pygame.K_RIGHT:
+                elif event.key == pygame.K_RIGHT and self.x1_change != -self.snake_block:
                     self.x1_change = self.snake_block
                     self.y1_change = 0
-                elif event.key == pygame.K_UP:
+                elif event.key == pygame.K_UP and self.y1_change != self.snake_block:
                     self.y1_change = -self.snake_block
                     self.x1_change = 0
-                elif event.key == pygame.K_DOWN:
+                elif event.key == pygame.K_DOWN and self.y1_change != -self.snake_block:
                     self.y1_change = self.snake_block
                     self.x1_change = 0
 
@@ -71,7 +76,6 @@ class GameLogic:
         self.y1 += self.y1_change
 
     def check_boundaries(self):
-        # Làm cho màn hình thông nhau
         if self.x1 >= self.ui.width:
             self.x1 = 0
         elif self.x1 < 0:
@@ -99,6 +103,5 @@ class GameLogic:
 
         # Kiểm tra ăn thức ăn
         if self.x1 == self.foodx and self.y1 == self.foody:
-            self.foodx = self.random_food()
-            self.foody = self.random_food()
+            self.foodx, self.foody = self.random_food()
             self.length_of_snake += 1

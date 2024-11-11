@@ -16,6 +16,10 @@ class Menu:
         self.obstacle_rect = None
         self.back_button_rect = None
         self.previous_state = None
+        
+        self.font_path = r'assets/fonts/PressStart2P-Regular.ttf'
+        self.title_font = pygame.font.Font(self.font_path, 50)
+        self.button_font = pygame.font.Font(self.font_path, 30)
 
     def run_menu(self):
         while True:
@@ -25,12 +29,17 @@ class Menu:
             self.handle_events()
 
     def show_start_menu(self):
-        font = pygame.font.SysFont("arial", 70)
-        title = font.render("Snake Game", True, (255, 255, 255))
-        start_button = font.render("Start", True, (255, 255, 255))
+        title = self.title_font.render("Snake Game", True, (255, 255, 255))
+        start_button = self.title_font.render("Start", True, (255, 255, 255))
 
-        self.start_button_rect = self.ui.screen.blit(start_button, [self.ui.width / 2 - 100, self.ui.height / 2])
-        self.ui.screen.blit(title, [self.ui.width / 4, self.ui.height / 4])
+        title_x = (self.ui.width - title.get_width()) // 2
+        title_y = self.ui.height // 4  
+
+        start_button_x = (self.ui.width - start_button.get_width()) // 2
+        start_button_y = self.ui.height // 2  
+
+        self.ui.screen.blit(title, (title_x, title_y))
+        self.start_button_rect = self.ui.screen.blit(start_button, (start_button_x, start_button_y))
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -49,11 +58,10 @@ class Menu:
         self.previous_state = 'mode_selection'
         while True:
             self.ui.clear_screen()
-            font = pygame.font.SysFont("arial", 50)
-            title = font.render("Choose game mode", True, (255, 255, 255))
-            single_player_button = font.render("Single", True, (255, 255, 255))
-            multiplayer_button = font.render("Multiplayer (with AI)", True, (255, 255, 255))
-            back_button = font.render("Return", True, (255, 255, 255))
+            title = self.title_font.render("Game mode", True, (255, 255, 255))
+            single_player_button = self.button_font.render("Single", True, (255, 255, 255))
+            multiplayer_button = self.button_font.render("Multiplayer (with AI)", True, (255, 255, 255))
+            back_button = self.button_font.render("Return", True, (255, 255, 255))
 
             spacing = 20
 
@@ -87,11 +95,10 @@ class Menu:
         self.previous_state = 'mode_selection'
         while True:
             self.ui.clear_screen()
-            font = pygame.font.SysFont("arial", 50)
-            title = font.render("Choose multiplayer mode", True, (255, 255, 255))
-            racing_button = font.render("Race", True, (255, 255, 255))
-            battle_button = font.render("Battle", True, (255, 255, 255))
-            back_button = font.render("Return", True, (255, 255, 255))
+            title = self.title_font.render("Multiplayer mode", True, (255, 255, 255))
+            racing_button = self.button_font.render("Race", True, (255, 255, 255))
+            battle_button = self.button_font.render("Battle", True, (255, 255, 255))
+            back_button = self.button_font.render("Return", True, (255, 255, 255))
 
             spacing = 20
 
@@ -123,11 +130,10 @@ class Menu:
     def show_map_selection(self):
         while True:
             self.ui.clear_screen()
-            font = pygame.font.SysFont("arial", 50)
-            title = font.render("Choose map type", True, (255, 255, 255))
-            no_obstacle_button = font.render("Map with no obstacles", True, (255, 255, 255))
-            obstacle_button = font.render("Map with obstacles", True, (255, 255, 255))
-            back_button = font.render("Return", True, (255, 255, 255))
+            title = self.title_font.render("Choose map type", True, (255, 255, 255))
+            no_obstacle_button = self.button_font.render("Map with no obstacles", True, (255, 255, 255))
+            obstacle_button = self.button_font.render("Map with obstacles", True, (255, 255, 255))
+            back_button = self.button_font.render("Return", True, (255, 255, 255))
 
             spacing = 20
             self.no_obstacle_rect = self.ui.screen.blit(no_obstacle_button, [self.ui.width / 4, self.ui.height / 2])

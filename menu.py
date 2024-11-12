@@ -1,5 +1,5 @@
 import pygame
-from Logic.gamelogic import GameLogic
+from Logic.gamelogic import *
 
 class Menu:
     def __init__(self, ui):
@@ -237,6 +237,18 @@ class Menu:
             self.run_menu()
 
     def start_game(self):
-        if self.selected_mode == "single" and self.map_type == "no_obstacle":
-            game_logic = GameLogic(self.ui, self.selected_mode)
+        if self.selected_mode == "single":
+            if self.map_type == "no_obstacle":
+                game_logic = SinglePlayerGameLogic(self.ui, self.map_type)
+            elif self.map_type == "obstacle":
+                pass
+            game_logic.game_loop()
+            
+        elif self.selected_mode == "multiplayer":
+            if self.selected_game_mode == "race" and self.map_type == "no_obstacle":
+                game_logic = MultiplayerGameLogic(self.ui, self.map_type)
+            elif self.selected_game_mode == "race" and self.map_type == "obstacle":
+                pass
+            elif self.selected_game_mode == "battle" and self.map_type == "obstacle":
+                pass
             game_logic.game_loop()

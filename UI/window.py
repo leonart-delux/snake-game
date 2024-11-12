@@ -2,7 +2,7 @@ import pygame
 
 class UI:
     def __init__(self):
-        self.width, self.height = 1280, 720
+        self.width, self.height = 800, 600
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('Snake Game')
 
@@ -16,17 +16,19 @@ class UI:
         
         self.font_path = r'assets/fonts/PressStart2P-Regular.ttf'
         
-        self.snake_block = 20
+        self.snake_block = 10
         
         self.rows = self.height // self.snake_block
         self.cols = self.width // self.snake_block
 
     def draw_snake(self, snake_block, snake_list, color):
-        for x in snake_list:
-            pygame.draw.rect(self.screen, color, [x[0], x[1], snake_block, snake_block])
+        for position in snake_list:
+            grid_x, grid_y = self.get_grid_position(position[0], position[1])
+            pygame.draw.rect(self.screen, color, [grid_x * self.snake_block, grid_y * self.snake_block, self.snake_block, self.snake_block])
 
-    def draw_food(self, foodx, foody, snake_block, color):
-        pygame.draw.rect(self.screen, color, [foodx, foody, snake_block, snake_block])
+    def draw_food(self, food_position, color):
+        food_x, food_y = self.get_grid_position(food_position[0], food_position[1])
+        pygame.draw.rect(self.screen, color, [food_x * self.snake_block, food_y * self.snake_block, self.snake_block, self.snake_block])
 
     def display_message(self, message):
         font_style = pygame.font.Font(self.font_path, 25)
@@ -40,8 +42,8 @@ class UI:
         self.screen.fill(self.black)
 
     def get_grid_position(self, x, y):
-        grid_x = x // self.snake_block
-        grid_y = y // self.snake_block
+        grid_x = int(x // self.snake_block)
+        grid_y = int(y // self.snake_block)
         return grid_x, grid_y
 
     def draw_grid(self):
@@ -51,8 +53,8 @@ class UI:
             pygame.draw.line(self.screen, self.blue, (col * self.snake_block, 0), (col * self.snake_block, self.height))
 
     def display_text(self, text, x, y, color, size):
-        font = pygame.font.Font(self.font_path, size)  
-        text_surface = font.render(text, True, color)  
-        self.screen.blit(text_surface, (x, y))  
+        font = pygame.font.Font(self.font_path, size)
+        text_surface = font.render(text, True, color)
+        self.screen.blit(text_surface, (x, y))
         
         

@@ -1,6 +1,6 @@
 import pygame
 from UI.window import UI
-from Logic.gamelogic import GameLogic
+from Logic.gamelogic import *
 from menu import Menu
 
 def main():

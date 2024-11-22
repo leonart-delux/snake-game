@@ -18,8 +18,8 @@ class Menu:
         self.previous_state = None
         
         self.font_path = r'assets/fonts/PressStart2P-Regular.ttf'
-        self.title_font = pygame.font.Font(self.font_path, 50)
-        self.button_font = pygame.font.Font(self.font_path, 30)
+        self.title_font = pygame.font.Font(self.font_path, 40)
+        self.button_font = pygame.font.Font(self.font_path, 25)
 
     def run_menu(self):
         while True:
@@ -137,7 +137,7 @@ class Menu:
         self.previous_state = 'mode_selection'
         while True:
             self.ui.clear_screen()
-            title = self.title_font.render("Multiplayer mode", True, (255, 255, 255))
+            title = self.title_font.render("Multiplay mode", True, (255, 255, 255))
             racing_button = self.button_font.render("Race", True, (255, 255, 255))
             battle_button = self.button_font.render("Battle", True, (255, 255, 255))
             back_button = self.button_font.render("Return", True, (255, 255, 255))
@@ -172,7 +172,7 @@ class Menu:
     def show_map_selection(self):
         while True:
             self.ui.clear_screen()
-            title = self.title_font.render("Choose map type", True, (255, 255, 255))
+            title = self.title_font.render("Choose map", True, (255, 255, 255))
             no_obstacle_button = self.button_font.render("Map with no obstacles", True, (255, 255, 255))
             obstacle_button = self.button_font.render("Map with obstacles", True, (255, 255, 255))
             back_button = self.button_font.render("Return", True, (255, 255, 255))
@@ -239,7 +239,7 @@ class Menu:
     def start_game(self):
         if self.selected_mode == "single":
             if self.map_type == "no_obstacle":
-                game_logic = SinglePlayerGameLogic(self.ui, self.map_type)
+                game_logic = AIPlayerGameLogic(self.ui, self.map_type)
             elif self.map_type == "obstacle":
                 pass
             game_logic.game_loop()

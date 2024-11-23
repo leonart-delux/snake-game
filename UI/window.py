@@ -31,7 +31,7 @@ class UI:
         pygame.draw.rect(self.screen, color, [food_x * self.snake_block, food_y * self.snake_block, self.snake_block, self.snake_block])
 
     def display_message(self, message):
-        font_style = pygame.font.Font(self.font_path, 25)
+        font_style = pygame.font.Font(self.font_path, 15)
         mesg = font_style.render(message, True, self.red)
         self.screen.blit(mesg, [self.width / 6, self.height / 3])
 

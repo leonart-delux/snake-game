@@ -146,4 +146,16 @@ class Pathfinding:
 
 
     def find_path(self, start, goal, obstacles):
-        return self.beam_search(start, goal, obstacles)
+        edge_obstacles = set()
+        
+        for y in range(self.grid_size[1]):
+            edge_obstacles.add((0, y))  
+            edge_obstacles.add((self.grid_size[0] - 1, y))  
+            
+        for x in range(self.grid_size[0]):
+            edge_obstacles.add((x, 0)) 
+            edge_obstacles.add((x, self.grid_size[1] - 1))  
+
+        obstacles.update(edge_obstacles)
+
+        return self.bfs(start, goal, obstacles)

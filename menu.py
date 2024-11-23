@@ -1,5 +1,8 @@
 import pygame
-from Logic.gamelogic import *
+from Logic.gamelogic import BaseGameLogic
+from Logic.ailogic import AIPlayerGameLogic
+from Logic.singlelogic import SinglePlayerGameLogic
+from Logic.multiplaylogic import MultiplayerGameLogic
 
 class Menu:
     def __init__(self, ui):
@@ -20,6 +23,7 @@ class Menu:
         self.font_path = r'assets/fonts/PressStart2P-Regular.ttf'
         self.title_font = pygame.font.Font(self.font_path, 40)
         self.button_font = pygame.font.Font(self.font_path, 25)
+        self.credit_font = pygame.font.Font(self.font_path, 20)
 
     def run_menu(self):
         while True:
@@ -68,11 +72,11 @@ class Menu:
         while True:
             self.ui.clear_screen()
             title = self.title_font.render("Our Members", True, (255, 255, 255))
-            member1 = self.button_font.render("1. 22110031: Bien Xuan Huy", True, (255, 255, 255))
-            member2 = self.button_font.render("2. 22110032: Le Gia Huy", True, (255, 255, 255))
-            member3 = self.button_font.render("3. 22110037: Nguyen Tien Huy", True, (255, 255, 255))
-            member4 = self.button_font.render("4. 22110085: Nguyen Truong", True, (255, 255, 255))
-            back_button = self.button_font.render("Return", True, (255, 255, 255))
+            member1 = self.credit_font.render("1. 22110031: Bien Xuan Huy", True, (255, 255, 255))
+            member2 = self.credit_font.render("2. 22110032: Le Gia Huy", True, (255, 255, 255))
+            member3 = self.credit_font.render("3. 22110037: Nguyen Tien Huy", True, (255, 255, 255))
+            member4 = self.credit_font.render("4. 22110085: Nguyen Truong", True, (255, 255, 255))
+            back_button = self.credit_font.render("Return", True, (255, 255, 255))
 
             spacing = 20
 

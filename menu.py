@@ -46,12 +46,13 @@ class Menu:
             # take return screen as next screen
             # in order to prevent stack overflow
             next_screen = next_screen()
+            if not next_screen:
+                next_screen = self.start_screen_handle
     
     # ==========================
     #       Start screen
     # ==========================
     
-    # Handle start screen
     def start_screen_handle(self):
         self.remake_screen()
         self.current_screen = 'start_screen'
@@ -68,7 +69,6 @@ class Menu:
         options = self.update_start_screen()
         return self.handle_events(self.update_start_screen, options)
     
-    # Reload menu options
     def update_start_screen(self, selected_option=0):
         # Options storage
         options = []
@@ -93,7 +93,7 @@ class Menu:
     def credit_screen_handle(self):
         self.remake_screen()
         # Display start_screen unchanged things 
-        self.ui.display_text_center("OUR MEMBER", self.ui.height // 10, self.ui.green, self.title_font_size, self.title_font_path)        # Title display
+        self.ui.display_text_center("OUR MEMBER", self.ui.height // 10, self.ui.white, self.title_font_size, self.title_font_path)        # Title display
                 
         # Options for start_screen
         self.option_names = ['22110031 Bien Xuan Huy', '22110032 Le Gia Huy', '22110037 Nguyen Tien Huy', '22110085 Nguyen Truong', 'Return'] 
@@ -112,9 +112,9 @@ class Menu:
 
         # Options display
         for i in range(len(self.option_names)):
-            color = self.ui.red if i == selected_option else self.ui.white
+            color = self.ui.light_blue if i == selected_option else self.ui.white
             options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.text_font_size, self.text_font_path),
+                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  35 * i, color, self.text_font_size, self.text_font_path),
                 'option_func': self.option_functions[i]
                 })
         

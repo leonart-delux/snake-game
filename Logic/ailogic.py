@@ -59,7 +59,7 @@ class AIPlayerGameLogic(BaseGameLogic):
     def update_screen_AI(self):
         self.ui.clear_screen()
         self.ui.draw_food((self.foodx, self.foody), self.ui.light_red)
-        self.ui.draw_snake(self.snake_block, self.snake_list, self.ui.red)
+        self.ui.draw_snake(self.snake_list, self.ui.red)
         self.ui.display_text(f"AI: {self.score}", self.ui.width - 120, 10, self.ui.red, 20)
         self.ui.refresh_screen()
 

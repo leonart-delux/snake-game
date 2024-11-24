@@ -11,8 +11,10 @@ class UI:
         self.red = (255, 0, 0)
         self.green = (90, 166, 110)
         self.blue = (0, 0, 255)
-        self.light_blue = (173, 216, 230)  
+        self.light_blue = (2, 242, 219)  
         self.light_red = (255, 182, 193)  
+        self.dark_green = (7, 90, 102)
+        self.dark_blue = (8, 111, 158)
         
         # For null font path exception
         self.default_font_path = r'assets/fonts/PressStart2P-Regular.ttf'

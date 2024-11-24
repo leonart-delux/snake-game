@@ -16,7 +16,7 @@ class Menu:
         option_functions = []
         
         # Font handle
-        self.text_font_path = r'assets/fonts/MightySouly-lxggD.ttf'
+        self.text_font_path = r'assets/fonts/PressStart2P-Regular.ttf'
         self.title_font_path = r'assets/fonts/KnightWarrior-w16n8.otf'
 
         self.title_font_size = 40
@@ -86,10 +86,12 @@ class Menu:
     # ==========================
     
     def credit_screen_handle(self):
-        self.remake_screen() 
+        self.remake_screen()
         # Display start_screen unchanged things 
         self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
         self.ui.display_text_center("OUR MEMBER", self.ui.height // 4, self.ui.green, 100, self.title_font_path)        # Title display
+        
+        return
         
         # Options for start_screen
         self.option_names = ['22110031: BIEN XUAN HUY', '22110032: LE GIA HUY', '22110037: NGUYEN TIEN HUY', '22110085: NGUYEN TRUONG', 'RETURN'] 
@@ -99,7 +101,7 @@ class Menu:
         options = self.update_credit()
         return self.handle_events(self.update_credit, options)
     
-    def update_credit(self):
+    def update_credit(self, selected_option):
         # Options storage
         options = []
 

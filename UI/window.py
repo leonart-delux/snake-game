@@ -2,26 +2,27 @@ import pygame
 
 class UI:
     def __init__(self):
-        self.width, self.height = 800, 600
+        self.width, self.height = 900, 600
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('Snake Game')
 
         self.black = (0, 0, 0)
         self.white = (255, 255, 255)
         self.red = (255, 0, 0)
-        self.green = (0, 255, 0)
+        self.green = (90, 166, 110)
         self.blue = (0, 0, 255)
         self.light_blue = (173, 216, 230)  
         self.light_red = (255, 182, 193)  
         
-        self.font_path = r'assets/fonts/PressStart2P-Regular.ttf'
+        # For null font path exception
+        self.default_font_path = r'assets/fonts/PressStart2P-Regular.ttf'
         
+        # Define grid
         self.snake_block = 10
-        
         self.rows = self.height // self.snake_block
         self.cols = self.width // self.snake_block
 
-    def draw_snake(self, snake_block, snake_list, color):
+    def draw_snake(self, snake_list, color):
         for position in snake_list:
             grid_x, grid_y = self.get_grid_position(position[0], position[1])
             pygame.draw.rect(self.screen, color, [grid_x * self.snake_block, grid_y * self.snake_block, self.snake_block, self.snake_block])
@@ -52,9 +53,19 @@ class UI:
         for col in range(self.cols):
             pygame.draw.line(self.screen, self.blue, (col * self.snake_block, 0), (col * self.snake_block, self.height))
 
-    def display_text(self, text, x, y, color, size):
-        font = pygame.font.Font(self.font_path, size)
+    def display_text(self, text, x, y, color, size, font_path):
+        font = pygame.font.Font(font_path, size)
         text_surface = font.render(text, True, color)
-        self.screen.blit(text_surface, (x, y))
+        return self.screen.blit(text_surface, (x, y))
+    
+    def display_text_center(self, text, y, color, size, font_path):
+        font = pygame.font.Font(font_path, size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect(center=(self.width//2, y))
+        return self.screen.blit(text_surface, text_rect)
         
+    def display_image(self, x, y, scale_rate, img_path):
+        image = pygame.image.load(img_path)
+        image = pygame.transform.scale(image, (image.get_width() * scale_rate, image.get_height() * scale_rate))
+        return self.screen.blit(image, (x, y))
         

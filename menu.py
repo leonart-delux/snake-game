@@ -9,7 +9,7 @@ class Menu:
         self.selected_mode = None
         self.selected_game_mode = None
         self.map_type = None
-        self.previous_state = None
+        self.current_screen = None
         
         # Options for each screen
         option_names = [] 
@@ -20,7 +20,8 @@ class Menu:
         self.title_font_path = r'assets/fonts/KnightWarrior-w16n8.otf'
 
         self.title_font_size = 40
-        self.button_font_size = 25
+        self.subtitle_font_size = 20
+        self.text_font_size = 15
 
     def remake_screen(self):
         self.ui.clear_screen()
@@ -52,13 +53,15 @@ class Menu:
     
     # Handle start screen
     def start_screen_handle(self):
-        self.remake_screen() 
+        self.remake_screen()
+        self.current_screen = 'start_screen'
+        
         # Display start_screen unchanged things 
         self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
         self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green, 100, self.title_font_path)        # Title display
         
         # Options for start_screen
-        self.option_names = ['PLAY', 'SETTING', 'CREDIT', 'QUIT'] 
+        self.option_names = ['Play', 'Setting', 'Credit', 'Quit'] 
         self.option_functions = [self.start_game, self.show_setting, self.credit_screen_handle, self.exit_game]
         
         # Menu and event handler
@@ -69,12 +72,14 @@ class Menu:
     def update_start_screen(self, selected_option=0):
         # Options storage
         options = []
+        option_left_padding = self.ui.width // 4 + 30
+        first_opt_top_padding = self.ui.height // (10/4)
 
         # Options display
-        for i in range(0, 4):
+        for i in range(len(self.option_names)):
             color = self.ui.red if i == selected_option else self.ui.white
             options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], 250, self.ui.height // (10/4) +  40 * i, color, self.button_font_size, self.text_font_path),
+                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.subtitle_font_size, self.text_font_path),
                 'option_func': self.option_functions[i]
                 })
 
@@ -88,32 +93,38 @@ class Menu:
     def credit_screen_handle(self):
         self.remake_screen()
         # Display start_screen unchanged things 
-        self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
-        self.ui.display_text_center("OUR MEMBER", self.ui.height // 4, self.ui.green, 100, self.title_font_path)        # Title display
-        
-        return
-        
+        self.ui.display_text_center("OUR MEMBER", self.ui.height // 10, self.ui.green, self.title_font_size, self.title_font_path)        # Title display
+                
         # Options for start_screen
-        self.option_names = ['22110031: BIEN XUAN HUY', '22110032: LE GIA HUY', '22110037: NGUYEN TIEN HUY', '22110085: NGUYEN TRUONG', 'RETURN'] 
-        self.option_functions = [self.start_game, self.show_setting, self.show_credit, None, self.exit_game]
+        self.option_names = ['22110031 Bien Xuan Huy', '22110032 Le Gia Huy', '22110037 Nguyen Tien Huy', '22110085 Nguyen Truong', 'Return'] 
+        self.option_functions = [None, None, None, None, self.go_back]
         
         # Menu and event handler
-        options = self.update_credit()
-        return self.handle_events(self.update_credit, options)
+        options = self.update_credit_screen()
+        return self.handle_events(self.update_credit_screen, options)
     
-    def update_credit(self, selected_option):
+    def update_credit_screen(self, selected_option=0):
         # Options storage
         options = []
+        option_left_padding = self.ui.width // 6
+        first_opt_top_padding = self.ui.height // 3
+        image_paths = [ r'assets/images/mem_xhuy.png', r'assets/images/mem_ghuy.png', r'assets/images/mem_thuy.png', r'assets/images/mem_ntruong.png', r'assets/images/empty_border.png' ]
 
         # Options display
-        for i in range(0, 4):
+        for i in range(len(self.option_names)):
             color = self.ui.red if i == selected_option else self.ui.white
             options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], 250, self.ui.height // (10/4) +  40 * i, color, self.button_font_size, self.text_font_path),
+                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.text_font_size, self.text_font_path),
                 'option_func': self.option_functions[i]
                 })
+        
+        # Member images
+        img_x = self.ui.width // (5/3)
+        img_y = self.ui.height // 3.5
+        self.ui.screen.fill((0, 0, 0), (img_x, img_y, 200, 300))
+        self.ui.display_image(img_x, img_y, 0.7, image_paths[selected_option])   
 
-        pygame.display.update()
+        pygame.display.flip()
         return options
     
     # ==========================
@@ -132,12 +143,18 @@ class Menu:
                         selected_option = (selected_option + 1) % len(options)
                     elif event.key == pygame.K_UP:
                         selected_option = (selected_option - 1) % len(options)
-                    elif event.key == pygame.K_RETURN:
+                    elif event.key == pygame.K_RETURN and options[selected_option]['option_func']:
                         # if enter key is stroked ---> return called screen (its function)
                         return options[selected_option]['option_func']
             
             current_screen(selected_option)
 
+    # ==========================
+    #   Return previous screen
+    # ==========================
+    
+    def go_back(self):
+        return self.start_screen_handle
 
     def show_setting(self):
         return
@@ -269,17 +286,6 @@ class Menu:
                     elif self.back_button_rect.collidepoint(event.pos):
                             self.go_back()
 
-    def go_back(self):
-        if self.previous_state == 'start_menu':
-            self.show_start_menu()
-        elif self.previous_state == 'mode_selection':
-            self.show_mode_selection()
-        elif self.previous_state == 'single_mode_selection':
-            self.show_mode_selection()
-        elif self.previous_state == 'multiplayer_mode_selection':
-            self.show_multiplayer_mode_selection()
-        else:
-            self.run_menu()
 
     def start_game(self):
         if self.selected_mode == "single":

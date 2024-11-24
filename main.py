@@ -6,9 +6,9 @@ from menu import Menu
 def main():
     pygame.init()
 
-    ui = UI()
+    base_ui = UI()
 
-    menu = Menu(ui)
+    menu = Menu(base_ui)
 
     menu.run_menu()
 

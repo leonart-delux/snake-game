@@ -1,8 +1,7 @@
 import pygame
-from Logic.gamelogic import BaseGameLogic
-from Logic.ailogic import AIPlayerGameLogic
-from Logic.singlelogic import SinglePlayerGameLogic
+from Logic.gamelogic import *
 from Logic.multiplaylogic import MultiplayerGameLogic
+from Logic.ailogic import AIPlayerGameLogic
 
 class Menu:
     def __init__(self, ui):
@@ -10,114 +9,154 @@ class Menu:
         self.selected_mode = None
         self.selected_game_mode = None
         self.map_type = None
-        self.start_button_rect = None
-        self.single_player_rect = None
-        self.multiplayer_rect = None
-        self.racing_button_rect = None
-        self.battle_button_rect = None
-        self.no_obstacle_rect = None
-        self.obstacle_rect = None
-        self.back_button_rect = None
         self.previous_state = None
         
-        self.font_path = r'assets/fonts/PressStart2P-Regular.ttf'
-        self.title_font = pygame.font.Font(self.font_path, 40)
-        self.button_font = pygame.font.Font(self.font_path, 25)
-        self.credit_font = pygame.font.Font(self.font_path, 20)
+        # Options for each screen
+        option_names = [] 
+        option_functions = []
+        
+        # Font handle
+        self.text_font_path = r'assets/fonts/MightySouly-lxggD.ttf'
+        self.title_font_path = r'assets/fonts/KnightWarrior-w16n8.otf'
 
+        self.title_font_size = 40
+        self.button_font_size = 25
+
+    def remake_screen(self):
+        self.ui.clear_screen()
+
+        # Create border
+        self.ui.display_image(3, 0, 0.15, r"assets/images/border_top_left.png")
+        self.ui.display_image(self.ui.width - 67, 0, 0.15, r"assets/images/border_top_right.png")
+        self.ui.display_image(self.ui.width - 67, self.ui.height - 89, 0.15, r"assets/images/border_bot_right.png")
+        self.ui.display_image(3, self.ui.height - 89, 0.15, r"assets/images/border_bot_left.png")
+
+        # Dont care about this
+        self.ui.display_text_center("@ HCMUTE - 2024", self.ui.height - 14, self.ui.light_red, 15, self.title_font_path)
+
+    def exit_game(self):
+        pygame.quit()
+        exit()
+    
     def run_menu(self):
+        # first screen will be start_screen
+        next_screen = self.start_screen_handle
         while True:
-            self.ui.clear_screen()
-            self.show_start_menu()
-            pygame.display.update()
-            self.handle_events()
+            # take return screen as next screen
+            # in order to prevent stack overflow
+            next_screen = next_screen()
+    
+    # ==========================
+    #       Start screen
+    # ==========================
+    
+    # Handle start screen
+    def start_screen_handle(self):
+        self.remake_screen() 
+        # Display start_screen unchanged things 
+        self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
+        self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green, 100, self.title_font_path)        # Title display
+        
+        # Options for start_screen
+        self.option_names = ['PLAY', 'SETTING', 'CREDIT', 'QUIT'] 
+        self.option_functions = [self.start_game, self.show_setting, self.credit_screen_handle, self.exit_game]
+        
+        # Menu and event handler
+        options = self.update_start_screen()
+        return self.handle_events(self.update_start_screen, options)
+    
+    # Reload menu options
+    def update_start_screen(self, selected_option=0):
+        # Options storage
+        options = []
 
-    def show_start_menu(self):
+        # Options display
+        for i in range(0, 4):
+            color = self.ui.red if i == selected_option else self.ui.white
+            options.append({
+                'option_rect': self.ui.display_text(self.option_names[i], 250, self.ui.height // (10/4) +  40 * i, color, self.button_font_size, self.text_font_path),
+                'option_func': self.option_functions[i]
+                })
+
+        pygame.display.update()
+        return options
+    
+    # ==========================
+    #       Credit screen
+    # ==========================
+    
+    def credit_screen_handle(self):
+        self.remake_screen() 
+        # Display start_screen unchanged things 
+        self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
+        self.ui.display_text_center("OUR MEMBER", self.ui.height // 4, self.ui.green, 100, self.title_font_path)        # Title display
+        
+        # Options for start_screen
+        self.option_names = ['22110031: BIEN XUAN HUY', '22110032: LE GIA HUY', '22110037: NGUYEN TIEN HUY', '22110085: NGUYEN TRUONG', 'RETURN'] 
+        self.option_functions = [self.start_game, self.show_setting, self.show_credit, None, self.exit_game]
+        
+        # Menu and event handler
+        options = self.update_credit()
+        return self.handle_events(self.update_credit, options)
+    
+    def update_credit(self):
+        # Options storage
+        options = []
+
+        # Options display
+        for i in range(0, 4):
+            color = self.ui.red if i == selected_option else self.ui.white
+            options.append({
+                'option_rect': self.ui.display_text(self.option_names[i], 250, self.ui.height // (10/4) +  40 * i, color, self.button_font_size, self.text_font_path),
+                'option_func': self.option_functions[i]
+                })
+
+        pygame.display.update()
+        return options
+    
+    # ==========================
+    #       Handle events
+    # ==========================
+    
+    # Handle coming up events of specific screen
+    def handle_events(self, current_screen, options, selected_option=0):
         while True:
-            self.ui.clear_screen()
-            title = self.title_font.render("Snake Game", True, (255, 255, 255))
-            start_button = self.title_font.render("Start", True, (255, 255, 255))
-            credit_button = self.button_font.render("About Us", True, (255, 255, 255))
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.exit_game()
 
-            title_x = (self.ui.width - title.get_width()) // 2
-            title_y = self.ui.height // 4  
-
-            start_button_x = (self.ui.width - start_button.get_width()) // 2
-            start_button_y = self.ui.height // 2  
-
-            self.ui.screen.blit(title, (title_x, title_y))
-            self.start_button_rect = self.ui.screen.blit(start_button, (start_button_x, start_button_y))
-            self.credit_button_rect = self.ui.screen.blit(credit_button, (start_button_x, start_button_y + 250))
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_DOWN:
+                        selected_option = (selected_option + 1) % len(options)
+                    elif event.key == pygame.K_UP:
+                        selected_option = (selected_option - 1) % len(options)
+                    elif event.key == pygame.K_RETURN:
+                        # if enter key is stroked ---> return called screen (its function)
+                        return options[selected_option]['option_func']
             
-            pygame.display.update()
-            self.handle_events()
+            current_screen(selected_option)
 
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    if self.start_button_rect.collidepoint(event.pos):
-                        self.previous_state = 'start_menu'
-                        self.show_mode_selection()
-                    elif self.credit_button_rect.collidepoint(event.pos):
-                        self.show_credit()
-                    elif self.back_button_rect.collidepoint(event.pos):
-                        self.go_back()
 
-    def show_credit(self):
-        previous_state = 'start_menu'
-        while True:
-            self.ui.clear_screen()
-            title = self.title_font.render("Our Members", True, (255, 255, 255))
-            member1 = self.credit_font.render("1. 22110031: Bien Xuan Huy", True, (255, 255, 255))
-            member2 = self.credit_font.render("2. 22110032: Le Gia Huy", True, (255, 255, 255))
-            member3 = self.credit_font.render("3. 22110037: Nguyen Tien Huy", True, (255, 255, 255))
-            member4 = self.credit_font.render("4. 22110085: Nguyen Truong", True, (255, 255, 255))
-            back_button = self.credit_font.render("Return", True, (255, 255, 255))
-
-            spacing = 20
-
-            self.ui.screen.blit(title, [self.ui.width / 4, self.ui.height / 4])
-            self.ui.screen.blit(member1, [self.ui.width / 4, self.ui.height / 2])
-            self.ui.screen.blit(member2, [self.ui.width / 4, self.ui.height / 2 + member1.get_height() + spacing])
-            self.ui.screen.blit(member3, [self.ui.width / 4, self.ui.height / 2 + member1.get_height() + member2.get_height() + 2 * spacing])
-            self.ui.screen.blit(member4, [self.ui.width / 4, self.ui.height / 2 + member1.get_height() + member2.get_height() + member3.get_height() + 3 * spacing])
-            self.back_button_rect = self.ui.screen.blit(back_button, [self.ui.width / 4, self.ui.height / 2 + member1.get_height() + member2.get_height() + member3.get_height() + member4.get_height() + 4 * spacing])
-
-            pygame.display.update()
-            self.handle_credit_events()
-
-    def handle_credit_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    if self.back_button_rect.collidepoint(event.pos):
-                        self.go_back()
+    def show_setting(self):
+        return
 
     def show_mode_selection(self):
-        previous_state = 'start_menu'
+        self.ui.clear_screen()
+        title = self.title_font.render("Game mode", True, (255, 255, 255))
+        single_player_button = self.button_font.render("Single", True, (255, 255, 255))
+        multiplayer_button = self.button_font.render("Multiplayer (with AI)", True, (255, 255, 255))
+        back_button = self.button_font.render("Return", True, (255, 255, 255))
+
+        spacing = 20
+
+        self.single_player_rect = self.ui.screen.blit(single_player_button, [self.ui.width / 4, self.ui.height / 2])
+        self.multiplayer_rect = self.ui.screen.blit(multiplayer_button, [self.ui.width / 4, self.ui.height / 2 + single_player_button.get_height() + spacing])
+        self.back_button_rect = self.ui.screen.blit(back_button, [10, 10])
+
+        self.ui.screen.blit(title, [self.ui.width / 4, self.ui.height / 4])
+
+        pygame.display.update()
         while True:
-            self.ui.clear_screen()
-            title = self.title_font.render("Game mode", True, (255, 255, 255))
-            single_player_button = self.button_font.render("Single", True, (255, 255, 255))
-            multiplayer_button = self.button_font.render("Multiplayer (with AI)", True, (255, 255, 255))
-            back_button = self.button_font.render("Return", True, (255, 255, 255))
-
-            spacing = 20
-
-            self.single_player_rect = self.ui.screen.blit(single_player_button, [self.ui.width / 4, self.ui.height / 2])
-            self.multiplayer_rect = self.ui.screen.blit(multiplayer_button, [self.ui.width / 4, self.ui.height / 2 + single_player_button.get_height() + spacing])
-            self.back_button_rect = self.ui.screen.blit(back_button, [10, 10])
-
-            self.ui.screen.blit(title, [self.ui.width / 4, self.ui.height / 4])
-
-            pygame.display.update()
             self.handle_mode_selection_events()
 
     def handle_mode_selection_events(self):

@@ -8,6 +8,7 @@ class BaseGameLogic:
         self.map_type = map_type
         self.snake_block = 10
         self.snake_speed = 20
+        self.snake_list = []
         self.clock = pygame.time.Clock()
         self.reset_game()
 
@@ -20,8 +21,22 @@ class BaseGameLogic:
         self.score = 0
 
     def random_food(self):
-        foodx = round(random.randrange(0, self.ui.width - self.snake_block) / 10.0) * 10.0
-        foody = round(random.randrange(0, self.ui.height - self.snake_block) / 10.0) * 10.0
+        # This initial value is for the 1st loop
+        correct_pos = False
+        # While the position of food is wrong
+        while not correct_pos:
+            # Assume this time it's correct
+            correct_pos = True            
+            # Re generate new position
+            foodx = round(random.randrange(0, self.ui.width - self.snake_block) / 10.0) * 10.0
+            foody = round(random.randrange(0, self.ui.height - self.snake_block) / 10.0) * 10.0
+            # Check if food spams on snake
+            for posx, posy in self.snake_list:
+                # If it does
+                if posx == foodx and posy == foody:
+                    correct_pos = False
+                    break
+                        
         return foodx, foody
 
     def handle_game_close_events(self):

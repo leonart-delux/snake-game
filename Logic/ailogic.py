@@ -16,20 +16,22 @@ class AIPlayerGameLogic(BaseGameLogic):
             obstacles = set(tuple(block) for block in self.snake_list)
             start = (self.x, self.y)
             goal = (self.foodx, self.foody)
-            self.path = self.pathfinding.find_path(start, goal, obstacles)
+            # self.path = self.pathfinding.find_path(start, goal, obstacles)
+            self.path = self.pathfinding.find_path(start, goal, obstacles)[1:]
         
         if self.path:
-            next_move = self.path[0]
+            # next_move = self.path[0]
             
-            if list(next_move) in self.snake_list:
-                obstacles = set(tuple(block) for block in self.snake_list)
-                self.path = self.pathfinding.find_path((self.x, self.y), (self.foodx, self.foody), obstacles)
-                if self.path:
-                    next_move = self.path.pop(0)
-            else:
-                self.path.pop(0)
-                self.x_change = next_move[0] - self.x
-                self.y_change = next_move[1] - self.y
+            # if list(next_move) in self.snake_list:
+            #     obstacles = set(tuple(block) for block in self.snake_list)
+            #     self.path = self.pathfinding.find_path((self.x, self.y), (self.foodx, self.foody), obstacles)
+            #     if self.path:
+            #         next_move = self.path.pop(0)
+            # else:
+                # self.path.pop(0)z
+            next_move = self.path.pop(0)
+            self.x_change = next_move[0] - self.x
+            self.y_change = next_move[1] - self.y
             
     def game_loop(self):
         while not self.game_over:

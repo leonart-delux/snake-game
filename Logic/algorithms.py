@@ -146,16 +146,21 @@ class Pathfinding:
 
 
     def find_path(self, start, goal, obstacles):
-        edge_obstacles = set()
+        # edge_obstacles = set()
         
-        for y in range(self.grid_size[1]):
-            edge_obstacles.add((0, y))  
-            edge_obstacles.add((self.grid_size[0] - 1, y))  
+        # for y in range(self.grid_size[1]):
+        #     edge_obstacles.add((0, y))  
+        #     edge_obstacles.add((self.grid_size[0] - 1, y))  
             
-        for x in range(self.grid_size[0]):
-            edge_obstacles.add((x, 0)) 
-            edge_obstacles.add((x, self.grid_size[1] - 1))  
+        # for x in range(self.grid_size[0]):
+        #     edge_obstacles.add((x, 0)) 
+        #     edge_obstacles.add((x, self.grid_size[1] - 1))  
 
-        obstacles.update(edge_obstacles)
+        # obstacles.update(edge_obstacles)
 
         return self.bfs(start, goal, obstacles)
+    
+test = Pathfinding([200, 200], 10)
+obstacles = set()
+path = test.find_path((130.0, 80.0), (0.0, 120.0), obstacles)
+print(path)

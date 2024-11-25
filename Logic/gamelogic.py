@@ -7,7 +7,7 @@ class BaseGameLogic:
         self.ui = ui
         self.map_type = map_type
         self.snake_block = 10
-        self.snake_speed = 20
+        self.snake_speed = 2
         self.clock = pygame.time.Clock()
         self.reset_game()
 

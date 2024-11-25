@@ -20,7 +20,7 @@ class Menu:
         self.title_font_path = r'assets/fonts/KnightWarrior-w16n8.otf'
 
         self.title_font_size = 40
-        self.subtitle_font_size = 20
+        self.subtitle_font_size = 25
         self.text_font_size = 15
 
     def remake_screen(self):
@@ -79,7 +79,7 @@ class Menu:
         for i in range(len(self.option_names)):
             color = self.ui.red if i == selected_option else self.ui.white
             options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.subtitle_font_size, self.text_font_path),
+                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.text_font_size, self.text_font_path),
                 'option_func': self.option_functions[i]
                 })
 
@@ -92,8 +92,9 @@ class Menu:
     
     def credit_screen_handle(self):
         self.remake_screen()
+        self.current_screen = 'start_screen'
         # Display start_screen unchanged things 
-        self.ui.display_text_center("OUR MEMBER", self.ui.height // 10, self.ui.white, self.title_font_size, self.title_font_path)        # Title display
+        self.ui.display_text_center("OUR MEMBER", self.ui.height // 10, self.ui.white, self.subtitle_font_size, self.text_font_path)        # Title display
                 
         # Options for start_screen
         self.option_names = ['22110031 Bien Xuan Huy', '22110032 Le Gia Huy', '22110037 Nguyen Tien Huy', '22110085 Nguyen Truong', 'Return'] 
@@ -121,10 +122,11 @@ class Menu:
         # Member images
         img_x = self.ui.width // (5/3)
         img_y = self.ui.height // 3.5
+        # Fill old image (if appeared)
         self.ui.screen.fill((0, 0, 0), (img_x, img_y, 200, 300))
         self.ui.display_image(img_x, img_y, 0.7, image_paths[selected_option])   
 
-        pygame.display.flip()
+        pygame.display.update()
         return options
     
     # ==========================
@@ -132,7 +134,7 @@ class Menu:
     # ==========================
     
     # Handle coming up events of specific screen
-    def handle_events(self, current_screen, options, selected_option=0):
+    def handle_events(self, update_screen, options, selected_option=0):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -144,10 +146,10 @@ class Menu:
                     elif event.key == pygame.K_UP:
                         selected_option = (selected_option - 1) % len(options)
                     elif event.key == pygame.K_RETURN and options[selected_option]['option_func']:
-                        # if enter key is stroked ---> return called screen (its function)
+                        # if enter key is stroked ---> return called screen (its function) if there is
                         return options[selected_option]['option_func']
             
-            current_screen(selected_option)
+            update_screen(selected_option)
 
     # ==========================
     #   Return previous screen

@@ -2,7 +2,7 @@ import pygame
 
 class UI:
     def __init__(self):
-        self.width, self.height = 900, 600
+        self.width, self.height = 200, 200
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('Snake Game')
 
@@ -34,12 +34,12 @@ class UI:
         pygame.draw.rect(self.screen, color, [food_x * self.snake_block, food_y * self.snake_block, self.snake_block, self.snake_block])
 
     def display_message(self, message):
-        font_style = pygame.font.Font(self.font_path, 15)
+        font_style = pygame.font.Font(self.default_font_path, 15)
         mesg = font_style.render(message, True, self.red)
         self.screen.blit(mesg, [self.width / 6, self.height / 3])
 
     def refresh_screen(self):
-        pygame.display.update()
+        pygame.display.flip()
 
     def clear_screen(self):
         self.screen.fill(self.black)
@@ -55,12 +55,14 @@ class UI:
         for col in range(self.cols):
             pygame.draw.line(self.screen, self.blue, (col * self.snake_block, 0), (col * self.snake_block, self.height))
 
-    def display_text(self, text, x, y, color, size, font_path):
+    def display_text(self, text, x, y, color, size, font_path = None):
+        font_path = font_path if font_path else self.default_font_path
         font = pygame.font.Font(font_path, size)
         text_surface = font.render(text, True, color)
         return self.screen.blit(text_surface, (x, y))
     
-    def display_text_center(self, text, y, color, size, font_path):
+    def display_text_center(self, text, y, color, size, font_path = None):
+        font_path = font_path if font_path else self.default_font_path
         font = pygame.font.Font(font_path, size)
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect(center=(self.width//2, y))

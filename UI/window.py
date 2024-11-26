@@ -21,7 +21,7 @@ class UI:
         self.default_font_path = r'assets/fonts/PressStart2P-Regular.ttf'
         
         # Define grid
-        self.snake_block = 20
+        self.snake_block = 10
         # Top and left padding for grid, grid position (top left) will start here
         self.grid_pos = self.height // 20
         # Grid height is 90% window height

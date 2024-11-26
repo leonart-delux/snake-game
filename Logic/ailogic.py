@@ -44,7 +44,7 @@ class AIPlayerGameLogic(BaseGameLogic):
         self.ui.draw_grid()
         self.ui.draw_food((self.food_row, self.food_col), self.ui.light_red)
         self.ui.draw_snake(self.snake_list, self.ui.red)
-        self.ui.display_text(f"AI: {self.score}", self.ui.width - 120, 10, self.ui.red, 20)
+        self.ui.display_text(f"AI: {self.score}", self.ui.width - 150, 10, self.ui.red, 20)
         self.ui.refresh_screen()
 
         

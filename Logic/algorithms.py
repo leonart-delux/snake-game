@@ -2,9 +2,39 @@ import random
 from collections import deque
 import heapq
 class Pathfinding:
-    def __init__(self, grid_size, block_size):
-        self.grid_size = grid_size
-        self.block_size = block_size
+    def __init__(self, map_size):
+        self.numb_rows, self.numb_cols = map_size
+        
+    def bfs(self, start, goal, obstacles_list):
+        queue = deque([start])
+        came_from = { start: None }
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
+        while queue:
+            current = queue.popleft()
+            if current == goal:
+                path = []
+                while current:
+                    path.append(current)
+                    current = came_from[current]
+                return path[::-1][1:]
+
+            for direction in directions:
+                neighbor = (current[0] + direction[0], current[1] + direction[1])
+                
+                # Neighbor accrosses boudary
+                if (neighbor[0] < 0) or (neighbor[0] >= self.numb_rows) or (neighbor[1] < 0) or (neighbor[1] >= self.numb_cols):
+                    continue
+                
+                # Neighbor is visited or neighbor is obstacles_list (grid obstacles and snake included)
+                if neighbor in came_from or neighbor in obstacles_list:
+                    continue
+                
+                # True case
+                queue.append(neighbor)
+                came_from[neighbor] = current
+
+        return []
         
     def dfs(self, start, goal, obstacles):
         stack = [start]
@@ -25,29 +55,6 @@ class Pathfinding:
                 if 0 <= neighbor[0] < self.grid_size[0] and 0 <= neighbor[1] < self.grid_size[1]:
                     if neighbor not in came_from and neighbor not in obstacles:
                         stack.append(neighbor)
-                        came_from[neighbor] = current
-
-        return []
-
-    def bfs(self, start, goal, obstacles):
-        queue = deque([start])
-        came_from = {start: None}
-        directions = [(0, self.block_size), (0, -self.block_size), (self.block_size, 0), (-self.block_size, 0)]
-
-        while queue:
-            current = queue.popleft()
-            if current == goal:
-                path = []
-                while current:
-                    path.append(current)
-                    current = came_from[current]
-                return path[::-1]
-
-            for direction in directions:
-                neighbor = (current[0] + direction[0], current[1] + direction[1])
-                if 0 <= neighbor[0] < self.grid_size[0] and 0 <= neighbor[1] < self.grid_size[1]:
-                    if neighbor not in came_from and neighbor not in obstacles:
-                        queue.append(neighbor)
                         came_from[neighbor] = current
 
         return []
@@ -146,21 +153,4 @@ class Pathfinding:
 
 
     def find_path(self, start, goal, obstacles):
-        # edge_obstacles = set()
-        
-        # for y in range(self.grid_size[1]):
-        #     edge_obstacles.add((0, y))  
-        #     edge_obstacles.add((self.grid_size[0] - 1, y))  
-            
-        # for x in range(self.grid_size[0]):
-        #     edge_obstacles.add((x, 0)) 
-        #     edge_obstacles.add((x, self.grid_size[1] - 1))  
-
-        # obstacles.update(edge_obstacles)
-
         return self.bfs(start, goal, obstacles)
-    
-test = Pathfinding([200, 200], 10)
-obstacles = set()
-path = test.find_path((130.0, 80.0), (0.0, 120.0), obstacles)
-print(path)

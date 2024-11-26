@@ -8,6 +8,60 @@ class AIPlayerGameLogic(BaseGameLogic):
         
         self.ui = ui
         self.path = []
+        
+    def get_neighbors(self, position):
+        """
+        Return the neighbors of a given position.
+        """
+        row, col = position
+        neighbors = []
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  
+
+        for dr, dc in directions:
+            new_row, new_col = row + dr, col + dc
+            if 0 <= new_row < self.numb_rows and 0 <= new_col < self.numb_cols:
+                neighbors.append((new_row, new_col))
+
+        return neighbors
+
+        
+    def flood_fill(self, position, obstacles_list):
+        """
+        This function is used to count the number of reachable cells from a given position.
+        """
+        visited = set()
+        stack = [position]
+        count = 0
+
+        while stack:
+            current = stack.pop()
+            if current in visited or current in obstacles_list:
+                continue
+            visited.add(current)
+            count += 1
+            for neighbor in self.get_neighbors(current):
+                if neighbor not in visited and neighbor not in obstacles_list:
+                    stack.append(neighbor)
+
+        return count
+    
+    def find_safe_move(self, snake_as_obstacles):
+        """
+        Find the best move that has the most empty cells around it.
+        """
+        neighbors = self.get_neighbors((self.head_row, self.head_col))
+        max_space = 0
+        best_move = None
+
+        for neighbor in neighbors:
+            if neighbor not in snake_as_obstacles:
+                # Count the number of reachable cells from this neighbor
+                space = self.flood_fill(neighbor, snake_as_obstacles)
+                if space > max_space:
+                    max_space = space
+                    best_move = neighbor
+
+        return best_move
 
     def find_move(self):
         if not self.path:
@@ -15,6 +69,14 @@ class AIPlayerGameLogic(BaseGameLogic):
             start = (self.head_row, self.head_col)
             goal = (self.food_row, self.food_col)
             self.path = self.pathfinding.find_path(start, goal, snake_as_obstacles)
+            
+            if not self.path: # if it still can't find a path
+                safe_move = self.find_safe_move(snake_as_obstacles)
+                if safe_move:
+                    self.path = [safe_move]
+                else:
+                    # If there is no safe move, the snake will move randomly and probably die
+                    self.path = []
             
         if self.path:
             next_move = self.path.pop(0)

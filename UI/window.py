@@ -20,7 +20,7 @@ class UI:
         # For null font path exception
         self.default_font_path = r'assets/fonts/PressStart2P-Regular.ttf'
         
-        # Define grid
+        # Define cell size
         self.snake_block = 10
         # Top and left padding for grid, grid position (top left) will start here
         self.grid_pos = self.height // 20
@@ -31,12 +31,11 @@ class UI:
 
     def draw_snake(self, snake_list, color):
         for position in snake_list:
-            grid_x, grid_y = self.get_grid_position(position[0], position[1])
-            pygame.draw.rect(self.screen, color, [grid_x * self.snake_block, grid_y * self.snake_block, self.snake_block, self.snake_block])
+            pygame.draw.rect(self.screen, color, [self.grid_pos + position[1] * self.snake_block, self.grid_pos + position[0] * self.snake_block, self.snake_block, self.snake_block])
 
     def draw_food(self, food_position, color):
-        food_x, food_y = self.get_grid_position(food_position[0], food_position[1])
-        pygame.draw.rect(self.screen, color, [food_x * self.snake_block, food_y * self.snake_block, self.snake_block, self.snake_block])
+        food_row, food_col = food_position
+        pygame.draw.rect(self.screen, color, [self.grid_pos + food_col * self.snake_block, self.grid_pos + food_row * self.snake_block, self.snake_block, self.snake_block])
 
     def display_message(self, message):
         font_style = pygame.font.Font(self.default_font_path, 15)
@@ -48,11 +47,6 @@ class UI:
 
     def clear_screen(self):
         self.screen.fill(self.black)
-
-    def get_grid_position(self, x, y):
-        grid_x = int(x // self.snake_block)
-        grid_y = int(y // self.snake_block)
-        return grid_x, grid_y
 
     def draw_grid(self):
         grid_color = self.gray

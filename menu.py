@@ -292,7 +292,7 @@ class Menu:
     def start_game(self):
         if self.selected_mode == "single":
             if self.map_type == "no_obstacle":
-                game_logic = AIPlayerGameLogic(self.ui, self.map_type)
+                game_logic = AIPlayerGameLogic(self.ui, (self.ui.rows // 2, self.ui.cols // 2))
             elif self.map_type == "obstacle":
                 pass
             game_logic.game_loop()

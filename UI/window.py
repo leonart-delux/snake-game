@@ -2,7 +2,7 @@ import pygame
 
 class UI:
     def __init__(self):
-        self.width, self.height = 200, 200
+        self.width, self.height = 1000, 600
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('Snake Game')
 
@@ -15,14 +15,19 @@ class UI:
         self.light_red = (255, 182, 193)  
         self.dark_green = (7, 90, 102)
         self.dark_blue = (8, 111, 158)
+        self.gray = (34, 34, 34)
         
         # For null font path exception
         self.default_font_path = r'assets/fonts/PressStart2P-Regular.ttf'
         
         # Define grid
-        self.snake_block = 10
-        self.rows = self.height // self.snake_block
-        self.cols = self.width // self.snake_block
+        self.snake_block = 20
+        # Top and left padding for grid, grid position (top left) will start here
+        self.grid_pos = self.height // 20
+        # Grid height is 90% window height
+        self.rows = int((self.height * 0.9) // self.snake_block)
+        # Grid width is 60% window width
+        self.cols = int((self.width * 0.6) // self.snake_block)
 
     def draw_snake(self, snake_list, color):
         for position in snake_list:
@@ -50,10 +55,15 @@ class UI:
         return grid_x, grid_y
 
     def draw_grid(self):
-        for row in range(self.rows):
-            pygame.draw.line(self.screen, self.blue, (0, row * self.snake_block), (self.width, row * self.snake_block))
-        for col in range(self.cols):
-            pygame.draw.line(self.screen, self.blue, (col * self.snake_block, 0), (col * self.snake_block, self.height))
+        grid_color = self.gray
+        grid_width = self.cols * self.snake_block
+        grid_height = self.rows * self.snake_block
+        for row in range(self.rows + 1):
+            start_point_y =  self.grid_pos + row * self.snake_block
+            pygame.draw.line(self.screen, grid_color, (self.grid_pos, start_point_y), (self.grid_pos + grid_width, start_point_y))
+        for col in range(self.cols + 1):
+            start_point_x = self.grid_pos + col * self.snake_block
+            pygame.draw.line(self.screen, grid_color, (start_point_x, self.grid_pos), (start_point_x, self.grid_pos + grid_height))
 
     def display_text(self, text, x, y, color, size, font_path = None):
         font_path = font_path if font_path else self.default_font_path
@@ -72,4 +82,3 @@ class UI:
         image = pygame.image.load(img_path)
         image = pygame.transform.scale(image, (image.get_width() * scale_rate, image.get_height() * scale_rate))
         return self.screen.blit(image, (x, y))
-        

@@ -4,11 +4,36 @@ import heapq
 class Pathfinding:
     def __init__(self, map_size):
         self.numb_rows, self.numb_cols = map_size
+        self.path_algorithm = {
+            'bfs': self.bfs,
+            'dfs': self.dfs,
+            'astar': self.a_star,
+            'hill': self.hill_climbing,
+            'beam': self.beam_search
+        }
+        self.directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    
+    def find_path(self, start, goal, obstacles, algorithm):
+        return algorithm(start, goal, obstacles)
+    
+    def get_neighbors(self, position):
+        """
+        Return the neighbors of a given position that does not accross boudaries.
+        """
+        row, col = position
+        neighbors = []
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  
+
+        for dr, dc in directions:
+            new_row, new_col = row + dr, col + dc
+            if (0 <= new_row < self.numb_rows) and (0 <= new_col < self.numb_cols):
+                neighbors.append((new_row, new_col))
+
+        return neighbors
         
     def bfs(self, start, goal, obstacles_list):
         queue = deque([start])
         came_from = { start: None }
-        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         while queue:
             current = queue.popleft()
@@ -19,7 +44,7 @@ class Pathfinding:
                     current = came_from[current]
                 return path[::-1][1:]
 
-            for direction in directions:
+            for direction in self.directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
                 
                 # Neighbor accrosses boudary
@@ -39,7 +64,6 @@ class Pathfinding:
     def dfs(self, start, goal, obstacles_list):
         stack = [start]
         came_from = {start: None}
-        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         while stack:
             current = stack.pop()
@@ -50,7 +74,7 @@ class Pathfinding:
                     current = came_from[current]
                 return path[::-1][1:]
 
-            for direction in directions:
+            for direction in self.directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
                 
                 if (neighbor[0] < 0) or (neighbor[0] >= self.numb_rows) or (neighbor[1] < 0) or (neighbor[1] >= self.numb_cols):
@@ -72,7 +96,6 @@ class Pathfinding:
         heapq.heappush(open_set, (0, start))
         came_from = {start: None}
         g_score = {start: 0}
-        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         while open_set:
             # Get the node with the lowest f_score / (score, node)
@@ -86,7 +109,7 @@ class Pathfinding:
                     current = came_from[current]
                 return path[::-1][1:]
 
-            for direction in directions:
+            for direction in self.directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
 
                 # Check if the neighbor is out of bounds
@@ -112,12 +135,11 @@ class Pathfinding:
     def hill_climbing(self, start, goal, obstacles_list):
         current = start
         came_from = {start: None}
-        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         while current != goal:
             neighbors = []
             
-            for direction in directions:
+            for direction in self.directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
 
                 if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
@@ -150,7 +172,6 @@ class Pathfinding:
         open_set = [(self.heuristic(start, goal), start)] 
         came_from = {start: None}
         g_score = {start: 0}
-        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         while open_set:
             # Use new_open_set to store the best nodes
@@ -164,7 +185,7 @@ class Pathfinding:
                         current = came_from[current]
                     return path[::-1][1:] 
 
-                for direction in directions:
+                for direction in self.directions:
                     neighbor = (current[0] + direction[0], current[1] + direction[1])
 
                     if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
@@ -185,7 +206,43 @@ class Pathfinding:
             # Choose the best nodes from new_open_set
             open_set = sorted(new_open_set, key=lambda x: x[0])[:beam_width]
             
-        return []  
+        return [] 
+        
+    def flood_fill(self, position, obstacles_list):
+        """
+        This function is used to count the number of reachable cells from a given position.
+        """
+        visited = set()
+        stack = [position]
+        count = 0
 
-    def find_path(self, start, goal, obstacles):
-        return self.beam_search(start, goal, obstacles)
+        while stack:
+            current = stack.pop()
+            if current in visited or current in obstacles_list:
+                continue
+            visited.add(current)
+            count += 1
+            for neighbor in self.get_neighbors(current):
+                if neighbor not in visited and neighbor not in obstacles_list:
+                    stack.append(neighbor)
+
+        return count
+    
+    def find_safe_move(self, obstacles, head_pos):
+        """
+        Find the best move that has the most empty cells around it.
+        """
+        neighbors = self.get_neighbors(head_pos)
+        max_space = 0
+        best_move = None
+
+        for neighbor in neighbors:
+            if neighbor not in obstacles:
+                # Count the number of reachable cells from this neighbor
+                space = self.flood_fill(neighbor, obstacles)
+                if space > max_space:
+                    max_space = space
+                    best_move = neighbor
+
+        return best_move
+    

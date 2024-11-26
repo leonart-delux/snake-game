@@ -36,10 +36,10 @@ class Pathfinding:
 
         return []
         
-    def dfs(self, start, goal, obstacles):
+    def dfs(self, start, goal, obstacles_list):
         stack = [start]
         came_from = {start: None}
-        directions = [(0, self.block_size), (0, -self.block_size), (self.block_size, 0), (-self.block_size, 0)]
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         while stack:
             current = stack.pop()
@@ -48,109 +48,141 @@ class Pathfinding:
                 while current:
                     path.append(current)
                     current = came_from[current]
-                return path[::-1]
+                return path[::-1][1:]
 
             for direction in directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
-                if 0 <= neighbor[0] < self.grid_size[0] and 0 <= neighbor[1] < self.grid_size[1]:
-                    if neighbor not in came_from and neighbor not in obstacles:
-                        stack.append(neighbor)
-                        came_from[neighbor] = current
+                
+                if (neighbor[0] < 0) or (neighbor[0] >= self.numb_rows) or (neighbor[1] < 0) or (neighbor[1] >= self.numb_cols):
+                    continue
+                
+                if neighbor in came_from or neighbor in obstacles_list:
+                    continue
+                
+                stack.append(neighbor)
+                came_from[neighbor] = current
 
         return []
     
-    def a_star(self, start, goal, obstacles):
-        def heuristic(a, b):
-            return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-        open_set = []
+    def heuristic(self, a, b):
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    
+    def a_star(self, start, goal, obstacles_list):
+        open_set = [] # Priority queue
         heapq.heappush(open_set, (0, start))
         came_from = {start: None}
         g_score = {start: 0}
-
-        directions = [(0, self.block_size), (0, -self.block_size), (self.block_size, 0), (-self.block_size, 0)]
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         while open_set:
-            _, current = heapq.heappop(open_set)
+            # Get the node with the lowest f_score / (score, node)
+            current_priority, current = heapq.heappop(open_set)
 
             if current == goal:
+                # Reconstruct the path
                 path = []
                 while current:
                     path.append(current)
                     current = came_from[current]
-                return path[::-1]
+                return path[::-1][1:]
 
             for direction in directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
-                if 0 <= neighbor[0] < self.grid_size[0] and 0 <= neighbor[1] < self.grid_size[1] and neighbor not in obstacles:
-                    tentative_g_score = g_score[current] + 1
-                    if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
-                        g_score[neighbor] = tentative_g_score
-                        f_score = tentative_g_score + heuristic(neighbor, goal)
-                        heapq.heappush(open_set, (f_score, neighbor))
-                        came_from[neighbor] = current
+
+                # Check if the neighbor is out of bounds
+                if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
+                    neighbor[1] < 0 or neighbor[1] >= self.numb_cols):
+                    continue
+
+                # Check if the neighbor is an obstacle or already visited
+                if neighbor in obstacles_list or neighbor in came_from:
+                    continue
+
+                # Actual cost from start to neighbor, use to check if the path is shorter
+                tentative_g_score = g_score[current] + 1
+
+                if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
+                    g_score[neighbor] = tentative_g_score
+                    f_score = tentative_g_score + self.heuristic(neighbor, goal)
+                    heapq.heappush(open_set, (f_score, neighbor))
+                    came_from[neighbor] = current
 
         return []
 
-    def hill_climbing(self, start, goal, obstacles):
-        def heuristic(a, b):
-            return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
+    def hill_climbing(self, start, goal, obstacles_list):
         current = start
         came_from = {start: None}
-        directions = [(0, self.block_size), (0, -self.block_size), (self.block_size, 0), (-self.block_size, 0)]
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         while current != goal:
-            next_step = None
-            min_heuristic = float('inf')
-
+            neighbors = []
+            
             for direction in directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
-                if 0 <= neighbor[0] < self.grid_size[0] and 0 <= neighbor[1] < self.grid_size[1] and neighbor not in obstacles:
-                    h = heuristic(neighbor, goal)
-                    if h < min_heuristic:
-                        min_heuristic = h
-                        next_step = neighbor
 
-            if not next_step:
-                break  # Không thể tiến xa hơn
+                if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
+                    neighbor[1] < 0 or neighbor[1] >= self.numb_cols):
+                    continue
 
+                if neighbor in obstacles_list or neighbor in came_from:
+                    continue
+
+                neighbors.append((self.heuristic(neighbor, goal), neighbor))
+
+            # If no valid neighbors, we are stuck. Backtrack to the previous node can solve this but I think it's not necessary due to our purpose of making this game.
+            if not neighbors:
+                return []
+
+            # Select the neighbor with the best heuristic value (greedy choice)
+            next_step = min(neighbors, key=lambda x: x[0])[1]
+            
             came_from[next_step] = current
             current = next_step
 
-        if current == goal:
-            path = []
-            while current:
-                path.append(current)
-                current = came_from[current]
-            return path[::-1]
+        path = []
+        while current:
+            path.append(current)
+            current = came_from[current]
+        
+        return path[::-1][1:]
 
-        return []
+    def beam_search(self, start, goal, obstacles_list, beam_width=2):
+        open_set = [(self.heuristic(start, goal), start)] 
+        came_from = {start: None}
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
-    def beam_search(self, start, goal, obstacles, beam_width=2):
-        def heuristic(a, b):
-            return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-        queue = [(start, [start])]
-        directions = [(0, self.block_size), (0, -self.block_size), (self.block_size, 0), (-self.block_size, 0)]
-
-        while queue:
-            queue = sorted(queue, key=lambda x: heuristic(x[0], goal))[:beam_width]
-            new_queue = []
-
-            for current, path in queue:
-                if current == goal:
-                    return path
+        while open_set:
+            # Use new_open_set to store the best nodes
+            new_open_set = []
+            
+            for _, current in open_set:
+                if current == goal:  
+                    path = []
+                    while current:
+                        path.append(current)
+                        current = came_from[current]
+                    return path[::-1][1:] 
 
                 for direction in directions:
                     neighbor = (current[0] + direction[0], current[1] + direction[1])
-                    if 0 <= neighbor[0] < self.grid_size[0] and 0 <= neighbor[1] < self.grid_size[1] and neighbor not in obstacles and neighbor not in path:
-                        new_queue.append((neighbor, path + [neighbor]))
 
-            queue = new_queue
+                    if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
+                        neighbor[1] < 0 or neighbor[1] >= self.numb_cols):
+                        continue
+                    
+                    if neighbor in obstacles_list or neighbor in came_from:
+                        continue
+                    
+                    tentative_g_score = came_from[current] + 1  
+                    f_score = tentative_g_score + self.heuristic(neighbor, goal)
 
-        return []
+                    new_open_set.append((f_score, neighbor))
+                    came_from[neighbor] = current
 
+            # Choose the best nodes from new_open_set
+            open_set = sorted(new_open_set, key=lambda x: x[0])[:beam_width]
+            
+        return []  
 
     def find_path(self, start, goal, obstacles):
-        return self.bfs(start, goal, obstacles)
+        return self.beam_search(start, goal, obstacles)

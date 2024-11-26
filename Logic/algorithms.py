@@ -149,6 +149,7 @@ class Pathfinding:
     def beam_search(self, start, goal, obstacles_list, beam_width=2):
         open_set = [(self.heuristic(start, goal), start)] 
         came_from = {start: None}
+        g_score = {start: 0}
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         while open_set:
@@ -173,11 +174,13 @@ class Pathfinding:
                     if neighbor in obstacles_list or neighbor in came_from:
                         continue
                     
-                    tentative_g_score = came_from[current] + 1  
+                    tentative_g_score = g_score[current] + 1
                     f_score = tentative_g_score + self.heuristic(neighbor, goal)
 
                     new_open_set.append((f_score, neighbor))
                     came_from[neighbor] = current
+                    
+                    g_score[neighbor] = tentative_g_score
 
             # Choose the best nodes from new_open_set
             open_set = sorted(new_open_set, key=lambda x: x[0])[:beam_width]

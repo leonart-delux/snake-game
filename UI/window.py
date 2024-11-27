@@ -17,8 +17,9 @@ class UI:
         self.dark_blue = (8, 111, 158)
         self.gray = (34, 34, 34)
         
-        # For null font path exception
+        # For null path exception
         self.default_font_path = r'assets/fonts/PressStart2P-Regular.ttf'
+        self.default_img_path = r'assets/images/brick.pngf'
         
         # Define cell size
         self.snake_block = 10
@@ -60,19 +61,17 @@ class UI:
             pygame.draw.line(self.screen, grid_color, (start_point_x, self.grid_pos), (start_point_x, self.grid_pos + grid_height))
 
     def display_text(self, text, x, y, color, size, font_path = None):
-        font_path = font_path if font_path else self.default_font_path
-        font = pygame.font.Font(font_path, size)
+        font = pygame.font.Font(font_path if font_path else self.default_font_path, size)
         text_surface = font.render(text, True, color)
         return self.screen.blit(text_surface, (x, y))
     
     def display_text_center(self, text, y, color, size, font_path = None):
-        font_path = font_path if font_path else self.default_font_path
-        font = pygame.font.Font(font_path, size)
+        font = pygame.font.Font(font_path if font_path else self.default_font_path, size)
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect(center=(self.width//2, y))
         return self.screen.blit(text_surface, text_rect)
         
     def display_image(self, x, y, scale_rate, img_path):
-        image = pygame.image.load(img_path)
+        image = pygame.image.load(img_path if img_path else self.default_font_path)
         image = pygame.transform.scale(image, (image.get_width() * scale_rate, image.get_height() * scale_rate))
         return self.screen.blit(image, (x, y))

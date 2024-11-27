@@ -2,12 +2,11 @@ import pygame
 from Logic.gamelogic import *
 from Logic.multiplaylogic import MultiplayerGameLogic
 from Logic.ailogic import AIPlayerGameLogic
+from obstacles import ObstacleMap
 
 class Menu:
     def __init__(self, ui):
         self.ui = ui
-        self.selected_mode = None
-        self.selected_game_mode = None
         self.map_type = None
         self.current_screen = None
         
@@ -130,11 +129,19 @@ class Menu:
                 
         # Options for start_screen
         self.option_names = ['No obstacles', 'Obstacles', 'Return'] 
-        self.option_functions = [self.start_game, None, self.go_back]
+        self.option_functions = [self.update_choose_empty_map, self.update_choose_obstacles_map, self.go_back]
         
         # Menu and event handler
         options = self.update_choose_map_screen()
         return self.handle_events(self.update_choose_map_screen, options)
+
+    def update_choose_empty_map(self):
+        self.map_type = 'empty'
+        return self.play_creen_handle
+    
+    def update_choose_obstacles_map(self):
+        self.map_type = 'obstacles'
+        return self.play_creen_handle
     
     def update_choose_map_screen(self, selected_option=0):
         # Options storage
@@ -186,9 +193,14 @@ class Menu:
     #       Play screen
     # ==========================
     
-    # def play_creen_handle(self):
+    def play_creen_handle(self):
+        obstacles_maps = ObstacleMap()
+        obstacles = obstacles_maps.list_map[0]
+        game_logic = AIPlayerGameLogic(obstacles, self.ui, (self.ui.rows // 2, self.ui.cols // 2))
+        game_logic.game_loop()
+         # if self.map_type == 'obstacles':
+            
         
-
     def show_setting(self):
         return
                         

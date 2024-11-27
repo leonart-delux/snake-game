@@ -2,8 +2,8 @@ from Logic.gamelogic import *
 from Logic.algorithms import Pathfinding
 
 class AIPlayerGameLogic(BaseGameLogic):
-    def __init__(self, ui, initial_pos):
-        super().__init__(set(), (ui.rows, ui.cols), initial_pos)
+    def __init__(self, obstacles, ui, initial_pos):
+        super().__init__(obstacles, (ui.rows, ui.cols), initial_pos)
         self.pathfinding = Pathfinding((self.numb_rows, self.numb_cols))
         
         self.ui = ui
@@ -12,12 +12,14 @@ class AIPlayerGameLogic(BaseGameLogic):
     def find_move(self):
         if not self.path:
             snake_as_obstacles = set(tuple(block) for block in self.snake_list)
+            # Union obstacles and snake position
+            obstacles_and_snake = self.obstacles | snake_as_obstacles
             start = (self.head_row, self.head_col)
             goal = (self.food_row, self.food_col)
-            self.path = self.pathfinding.find_path(start, goal, snake_as_obstacles, self.pathfinding.path_algorithm['bfs'])
+            self.path = self.pathfinding.find_path(start, goal, obstacles_and_snake, self.pathfinding.path_algorithm['bfs'])
             
             if not self.path: # if it still can't find a path
-                safe_move = self.pathfinding.find_safe_move(snake_as_obstacles, (self.head_row, self.head_col))
+                safe_move = self.pathfinding.find_safe_move(obstacles_and_snake, (self.head_row, self.head_col))
                 if safe_move:
                     self.path = [safe_move]
                 else:
@@ -33,7 +35,7 @@ class AIPlayerGameLogic(BaseGameLogic):
         self.update_screen_AI()
         while not self.game_close:
             while self.game_over:
-                self.ui.clear_screen()
+                # self.ui.clear_screen()
                 self.ui.display_message("You lose! Press Q-Quit or C-Play Again")
                 self.ui.refresh_screen()
                 self.handle_game_close_events()
@@ -45,11 +47,13 @@ class AIPlayerGameLogic(BaseGameLogic):
             self.check_eat_food()
             self.update_screen_AI()
 
+            pygame.event.get()
             self.clock.tick(self.snake_speed)
 
     def update_screen_AI(self):
         self.ui.clear_screen()
         self.ui.draw_grid()
+        self.ui.draw_obstacles(self.obstacles)
         self.ui.draw_food((self.food_row, self.food_col), self.ui.light_red)
         self.ui.draw_snake(self.snake_list, self.ui.red)
         self.ui.display_text(f"AI: {self.score}", self.ui.width - 150, 10, self.ui.red, 20)

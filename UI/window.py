@@ -34,6 +34,12 @@ class UI:
     def draw_snake(self, snake_list, color):
         for position in snake_list:
             pygame.draw.rect(self.screen, color, [self.grid_pos + position[1] * self.snake_block, self.grid_pos + position[0] * self.snake_block, self.snake_block, self.snake_block])
+        
+    def draw_obstacles(self, obstacles_position_list):
+        obstacle_img = pygame.image.load(r'assets/images/brick.png')
+        obstacle_img = pygame.transform.scale(obstacle_img, (self.snake_block, self.snake_block))
+        for position in obstacles_position_list:
+            self.screen.blit(obstacle_img, (self.grid_pos + position[1] * self.snake_block, self.grid_pos + position[0] * self.snake_block))
 
     def draw_food(self, food_position, color):
         food_row, food_col = food_position

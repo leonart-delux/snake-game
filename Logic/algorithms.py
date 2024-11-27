@@ -4,12 +4,13 @@ import heapq
 class Pathfinding:
     def __init__(self, map_size):
         self.numb_rows, self.numb_cols = map_size
+        self.path_algorithm_names = ['BFS', 'DFS', 'Astar', 'Hill', 'Beam']
         self.path_algorithm = {
-            'bfs': self.bfs,
-            'dfs': self.dfs,
-            'astar': self.a_star,
-            'hill': self.hill_climbing,
-            'beam': self.beam_search
+            'BFS': self.bfs,
+            'DFS': self.dfs,
+            'Astar': self.a_star,
+            'Hill': self.hill_climbing,
+            'Beam': self.beam_search
         }
         self.directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     

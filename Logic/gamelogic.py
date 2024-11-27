@@ -9,7 +9,6 @@ class BaseGameLogic:
         self.initial_pos_row, self.initial_pos_col = initial_pos
         
         self.snake_speed = 20
-        self.clock = pygame.time.Clock()
         self.reset_game()
 
     def reset_game(self):

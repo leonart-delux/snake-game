@@ -36,7 +36,7 @@ class AIPlayerGameLogic(BaseGameLogic):
         while not self.game_close:
             while self.game_over:
                 # self.ui.clear_screen()
-                self.ui.display_message("You lose! Press Q-Quit or C-Play Again")
+                self.ui.display_text_center("You lose! Press Q-Quit or C-Play Again", self.ui.height // 2, self.ui.white, self.ui.text_font)
                 self.ui.refresh_screen()
                 self.handle_game_close_events()
 
@@ -56,7 +56,7 @@ class AIPlayerGameLogic(BaseGameLogic):
         self.ui.draw_obstacles(self.obstacles)
         self.ui.draw_food((self.food_row, self.food_col), self.ui.light_red)
         self.ui.draw_snake(self.snake_list, self.ui.red)
-        self.ui.display_text(f"AI: {self.score}", self.ui.width - 150, 10, self.ui.red, 20)
+        self.ui.display_text(f"AI: {self.score}", self.ui.width - 150, 10, self.ui.red, self.ui.subtitle_font)
         self.ui.refresh_screen()
         
             

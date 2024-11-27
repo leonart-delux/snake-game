@@ -13,14 +13,6 @@ class Menu:
         # Options for each screen
         option_names = [] 
         option_functions = []
-        
-        # Font handle
-        self.text_font_path = r'assets/fonts/PressStart2P-Regular.ttf'
-        self.title_font_path = r'assets/fonts/KnightWarrior-w16n8.otf'
-
-        self.title_font_size = 40
-        self.subtitle_font_size = 25
-        self.text_font_size = 15
 
     def exit_game(self):
         pygame.quit()
@@ -46,7 +38,7 @@ class Menu:
         
         # Display start_screen unchanged things 
         self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
-        self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green, 100, self.title_font_path)        # Title display
+        self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green, self.ui.logo_font)        # Title display
         
         # Options for start_screen
         self.option_names = ['Play', 'Setting', 'Credit', 'Quit'] 
@@ -66,7 +58,7 @@ class Menu:
         for i in range(len(self.option_names)):
             color = self.ui.red if i == selected_option else self.ui.white
             options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.text_font_size, self.text_font_path),
+                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.ui.text_font),
                 'option_func': self.option_functions[i]
                 })
 
@@ -81,7 +73,7 @@ class Menu:
         self.ui.clear_screen()
         self.current_screen = 'credit_screen'
         # Display credit_screen unchanged things 
-        self.ui.display_text_center("OUR MEMBER", self.ui.height // 10, self.ui.white, self.subtitle_font_size, self.text_font_path)        # Title display
+        self.ui.display_text_center("OUR MEMBER", self.ui.height // 10, self.ui.white, self.ui.subtitle_font)        # Title display
                 
         # Options for credit
         self.option_names = ['22110031 Bien Xuan Huy', '22110032 Le Gia Huy', '22110037 Nguyen Tien Huy', '22110085 Nguyen Truong', 'Return'] 
@@ -102,7 +94,7 @@ class Menu:
         for i in range(len(self.option_names)):
             color = self.ui.light_blue if i == selected_option else self.ui.white
             options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  35 * i, color, self.text_font_size, self.text_font_path),
+                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  35 * i, color, self.ui.text_font),
                 'option_func': self.option_functions[i]
                 })
         
@@ -125,7 +117,7 @@ class Menu:
         self.current_screen = 'choose_map_screen'
         # Display start_screen unchanged things 
         self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
-        self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green, 100, self.title_font_path)        # Title display
+        self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green,self.ui.logo_font)        # Title display
                 
         # Options for start_screen
         self.option_names = ['No obstacles', 'Obstacles', 'Return'] 
@@ -153,7 +145,7 @@ class Menu:
         for i in range(len(self.option_names)):
             color = self.ui.red if i == selected_option else self.ui.white
             options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.text_font_size, self.text_font_path),
+                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.ui.text_font),
                 'option_func': self.option_functions[i]
                 })
     
@@ -194,11 +186,15 @@ class Menu:
     # ==========================
     
     def play_creen_handle(self):
-        obstacles_maps = ObstacleMap()
-        obstacles = obstacles_maps.list_map[0]
-        game_logic = AIPlayerGameLogic(obstacles, self.ui, (self.ui.rows // 2, self.ui.cols // 2))
-        game_logic.game_loop()
-         # if self.map_type == 'obstacles':
+        obstacles = set()
+        if self.map_type == 'empty':
+            game_screen = AIPlayerGameLogic(obstacles, self.ui, (self.ui.rows // 2, self.ui.cols // 2))
+        elif self.map_type == 'obstacles':
+            obstacles_maps = ObstacleMap()
+            obstacles = obstacles_maps.list_map[0]
+            game_screen = AIPlayerGameLogic(obstacles, self.ui, (self.ui.rows // 2, self.ui.cols // 2))
+        
+        game_screen.game_loop()
             
         
     def show_setting(self):

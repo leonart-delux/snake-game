@@ -11,7 +11,7 @@ class ComboBox:
     
     def draw(self, screen):
         # Draw the main box
-        # pygame.draw.rect(screen, (200, 200, 200), self.rect)
+        #pygame.draw.rect(screen, (200, 200, 200), self.rect)
         pygame.draw.rect(screen, (0, 0, 0), self.rect, 2, 5)
         
         # Draw the selected option

@@ -23,7 +23,17 @@ class BaseGameLogic:
         self.game_close = False
         
         self.food_row, self.food_col = self.generate_random_food_position()
-        self.move_direction = [1, 0]    
+        self.move_direction = [1, 0]
+    
+    def update_initial_pos(self, pos_row, pos_col):
+        self.initial_pos_row = pos_row
+        self.initial_pos_col = pos_col
+    
+    def update_obstacles(self, ostacles):
+        self.obstacles = ostacles
+
+    def get_snake_as_ostacles(self):
+        return set(tuple(block) for block in self.snake_list)
                         
     def generate_random_food_position(self):
         # Create valid position list for food

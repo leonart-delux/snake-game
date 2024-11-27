@@ -3,12 +3,25 @@ from Logic.gamelogic import *
 from Logic.multiplaylogic import MultiplayerGameLogic
 from Logic.ailogic import AIPlayerGameLogic
 from obstacles import ObstacleMap
+from UI.window import * 
 
 class Menu:
     def __init__(self, ui):
         self.ui = ui
-        self.map_type = None
         self.current_screen = None
+        
+        # Functional board variables in play screen
+        self.functional_board_x = self.ui.grid_pos + self.ui.cols * self.ui.snake_block + 50
+        self.functional_board_width = self.ui.width * 0.29
+        
+        self.button_witdh = self.functional_board_width // (10/3)
+        self.small_button_width = self.button_witdh // 2
+        self.button_padding = self.functional_board_width // (100/5)
+        
+        self.first_player_board_top_padding = self.ui.grid_pos + 90
+        self.board_padding = 15
+        
+        self.speed_slider = Slider(self.functional_board_x + self.button_witdh + self.button_padding, self.ui.grid_pos + 50, self.button_witdh * 1.5, 1, 60, 30, self.ui.dark_green, self.ui.gray)
         
         # Options for each screen
         option_names = [] 
@@ -34,7 +47,7 @@ class Menu:
     
     def start_screen_handle(self):
         self.ui.clear_screen()
-        self.current_screen = 'start_screen'
+        self.current_screen = 'main'
         
         # Display start_screen unchanged things 
         self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
@@ -42,7 +55,7 @@ class Menu:
         
         # Options for start_screen
         self.option_names = ['Play', 'Setting', 'Credit', 'Quit'] 
-        self.option_functions = [self.choose_map_screen_handle, self.show_setting, self.credit_screen_handle, self.exit_game]
+        self.option_functions = [self.play_creen_handle, self.show_setting, self.credit_screen_handle, self.exit_game]
         
         # Menu and event handler
         options = self.update_start_screen()
@@ -71,7 +84,7 @@ class Menu:
     
     def credit_screen_handle(self):
         self.ui.clear_screen()
-        self.current_screen = 'credit_screen'
+        self.current_screen = 'credit'
         # Display credit_screen unchanged things 
         self.ui.display_text_center("OUR MEMBER", self.ui.height // 10, self.ui.white, self.ui.subtitle_font)        # Title display
                 
@@ -109,50 +122,6 @@ class Menu:
         return options
     
     # ==========================
-    # Choose map screen handle
-    # ==========================
-    
-    def choose_map_screen_handle(self):
-        self.ui.clear_screen()
-        self.current_screen = 'choose_map_screen'
-        # Display start_screen unchanged things 
-        self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
-        self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green,self.ui.logo_font)        # Title display
-                
-        # Options for start_screen
-        self.option_names = ['No obstacles', 'Obstacles', 'Return'] 
-        self.option_functions = [self.update_choose_empty_map, self.update_choose_obstacles_map, self.go_back]
-        
-        # Menu and event handler
-        options = self.update_choose_map_screen()
-        return self.handle_events(self.update_choose_map_screen, options)
-
-    def update_choose_empty_map(self):
-        self.map_type = 'empty'
-        return self.play_creen_handle
-    
-    def update_choose_obstacles_map(self):
-        self.map_type = 'obstacles'
-        return self.play_creen_handle
-    
-    def update_choose_map_screen(self, selected_option=0):
-        # Options storage
-        options = []
-        option_left_padding = self.ui.width // 4 + 30
-        first_opt_top_padding = self.ui.height // (10/4.5)
-        
-        # Options display
-        for i in range(len(self.option_names)):
-            color = self.ui.red if i == selected_option else self.ui.white
-            options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.ui.text_font),
-                'option_func': self.option_functions[i]
-                })
-    
-        self.ui.update_screen()
-        return options
-    
-    # ==========================
     #       Handle events
     # ==========================
     
@@ -180,39 +149,161 @@ class Menu:
     
     def go_back(self):
         return self.start_screen_handle
-
+    
     # ==========================
     #       Play screen
     # ==========================
     
     def play_creen_handle(self):
-        obstacles = set()
-        if self.map_type == 'empty':
-            game_screen = AIPlayerGameLogic(obstacles, self.ui, (self.ui.rows // 2, self.ui.cols // 2))
-        elif self.map_type == 'obstacles':
-            obstacles_maps = ObstacleMap()
-            obstacles = obstacles_maps.list_map[0]
-            game_screen = AIPlayerGameLogic(obstacles, self.ui, (self.ui.rows // 2, self.ui.cols // 2))
-        
-        game_screen.game_loop()
+        self.current_screen = 'play'
+        map_list = [ set() ]
+        obstacles_maps = ObstacleMap()
+        map_list.extend( obstacles_maps.list_map)
+        selected_map = 0
             
+        # All player along with its need attributes (for example: algorithm box, check for AI or player)
+        player_stuff_list = []
         
+        # Handle loop
+        is_clicked = False
+        self.is_playing = False
+        self.is_human_picked = False
+        
+        while True:
+            # Display frame
+            self.ui.clear_screen()
+            self.display_main_functional_board()
+            self.display_player_functional_board(player_stuff_list)
+            self.ui.draw_grid()
+            self.ui.draw_obstacles(map_list[selected_map])
+            
+            # Update temporary obstacles that not constant
+            temp_obstacles = set()
+            for player_stuff in player_stuff_list:
+                temp_obstacles.update(player_stuff['player'].get_snake_as_ostacles())
+            
+            # Update and process
+            for player_stuff in player_stuff_list:
+                if self.is_playing:
+                    # Update algorithm
+                    player_stuff['player'].algorithm = player_stuff['player'].pathfinding.path_algorithm[player_stuff['algo_cbb'].selected]
+                    # Process
+                    player_stuff['player'].one_frame_process(temp_obstacles)
+                player_stuff['player'].update_screen()
+                    
+            # If user click on something
+            # I prefer process event click on next frame
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            if is_clicked:
+                # Pause/Go which handled by is_playing
+                if self.pause_button_rect.collidepoint(mouse_x, mouse_y):
+                    self.is_playing = not self.is_playing
+                # Reset game
+                if self.reset_button_rect.collidepoint(mouse_x, mouse_y):
+                    self.is_playing = False
+                    player_stuff_list.clear()
+                # Go back
+                if self.back_button_rect.collidepoint(mouse_x, mouse_y):
+                    return self.go_back
+                
+                # Add player
+                if self.add_human_button_rect.collidepoint(mouse_x, mouse_y):
+                    self.is_human_picked = True
+                if self.add_ai_button_rect.collidepoint(mouse_x, mouse_y):
+                    self.add_ai_player(player_stuff_list)
+
+                # If delete a player
+                for player_stuff in player_stuff_list:
+                    if player_stuff['del'] and player_stuff['del'].collidepoint(mouse_x, mouse_y):
+                        # If man player is deleted
+                        if player_stuff['is_human']:
+                            self.is_human_picked = False
+                        player_stuff_list.remove(player_stuff)
+                        
+            is_clicked = False
+
+            # Handle event
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.exit_game()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    is_clicked = True
+                    
+                self.speed_slider.handle_event(event)
+                for player_stuff in player_stuff_list:
+                    if player_stuff:
+                        player_stuff['algo_cbb'].handle_event(event)
+            
+            self.ui.clock.tick(self.speed_slider.get_value())
+            self.ui.refresh_screen()
+    
+    def add_ai_player(self, player_list):
+        self.algorithm = Pathfinding((self.ui.rows, self.ui.cols))
+        player_list.append({
+            'player': AIPlayerGameLogic(set(), self.ui, (0, 0)),
+            'is_human': False,
+            'algo_cbb': ComboBox(100, 23, self.algorithm.path_algorithm_names, self.ui.small_text_font, self.ui.white, self.ui.gray, self.ui.white, self.ui.dark_blue),
+            'del': None
+        })
+            
+    def display_main_functional_board(self):
+        # Change map
+        self.previous_map_button_rect = self.ui.display_image(self.functional_board_x - 40, self.ui.grid_pos, (30/128), r"assets/images/up-arrow.png")
+        self.next_map_button_rect = self.ui.display_image(self.functional_board_x - 40, self.ui.grid_pos + self.ui.rows * self.ui.snake_block - 30, (30/128), r"assets/images/down-arrow.png")
+        
+        # Buttons
+        self.pause_button_rect = self.ui.display_button((self.functional_board_x, self.ui.grid_pos), (self.button_witdh, 30), 'Stop' if self.is_playing else 'Go!', self.ui.text_font, self.ui.white, self.ui.dark_blue, radius=10)
+        self.reset_button_rect = self.ui.display_button((self.functional_board_x + (self.button_witdh + self.button_padding), self.ui.grid_pos), (self.button_witdh, 30), 'Reset', self.ui.text_font, self.ui.white, self.ui.dark_blue, radius=10)
+        self.back_button_rect = self.ui.display_button((self.functional_board_x + (self.button_witdh + self.button_padding) * 2, self.ui.grid_pos), (self.button_witdh, 30), 'Back', self.ui.text_font, self.ui.white, self.ui.red, radius=10)
+        
+        # Speed slider
+        self.ui.display_text('Speed', self.functional_board_x + 13, self.ui.grid_pos + self.pause_button_rect.height + 10, self.ui.white, self.ui.text_font)
+        self.speed_slider.draw(self.ui.screen)
+        self.ui.display_text(str(self.speed_slider.get_value()), self.functional_board_x + (self.button_witdh + self.button_padding) * 2.45, self.ui.grid_pos + self.pause_button_rect.height + 13, self.ui.red, self.ui.text_font)
+    
+    def display_player_functional_board(self, player_stuff_list):
+        open_cbb_index = -1
+        open_cbb_top_padd = 0
+        for i, player_stuff in enumerate(player_stuff_list):
+            back_board_top_padding = self.first_player_board_top_padding + (70 + self.board_padding) * i
+            # Back board
+            self.ui.display_button((self.functional_board_x, back_board_top_padding), (self.functional_board_width, 70), '', self.ui.text_font, self.ui.white, self.ui.dark_blue, radius=10)
+            
+            # Test information
+            self.ui.display_text(f'Score {1}', self.functional_board_x + 13, back_board_top_padding + 10, self.ui.white, self.ui.text_font)
+            self.ui.display_text(f'Pass {10000}', self.functional_board_x + 16, back_board_top_padding + 40, self.ui.white, self.ui.small_text_font)
+
+            # Player tag
+            self.ui.display_button((self.functional_board_x + self.functional_board_width - 82, back_board_top_padding + 5), (30, 20), 'HM' if player_stuff['is_human'] else 'AI', self.ui.text_font_2, self.ui.gray, self.ui.light_blue, radius=10)
+
+            # Delete player
+            player_stuff['del'] = self.ui.display_button((self.functional_board_x + self.functional_board_width - 42, back_board_top_padding + 5), (30, 20), 'DEL', self.ui.text_font_2, self.ui.white, self.ui.red, radius=10)
+            
+            # Display algorithm_box if has (human case dont have this)
+            if player_stuff['algo_cbb']:
+                # Draw unopen combo box first
+                if not player_stuff['algo_cbb'].is_open:
+                    player_stuff['algo_cbb'].draw(self.ui.screen, self.functional_board_x + 180, back_board_top_padding + 35)
+                # If a combo box is open, save its index and draw later
+                else:
+                    open_cbb_index = i
+                    open_cbb_top_padd = back_board_top_padding + 35
+        
+        # If a combobox is open, it should be drawn last
+        if open_cbb_index != -1:
+            player_stuff_list[open_cbb_index]['algo_cbb'].draw(self.ui.screen, self.functional_board_x + 180, open_cbb_top_padd)
+        
+        # Max player
+        if (len(player_stuff_list) >= 5):
+            return
+
+        # Buttons to add player
+        top_padding = self.first_player_board_top_padding + (70 + self.board_padding) * len(player_stuff_list)
+        add_ai_button_left_padding = self.functional_board_x + self.functional_board_width // 2 - self.small_button_width // 2
+        if not self.is_human_picked:
+            self.add_human_button_rect = self.ui.display_button((add_ai_button_left_padding + self.small_button_width // 2 + 10, top_padding), (self.small_button_width, 15), '+Man', self.ui.small_text_font, self.ui.red, self.ui.light_red, radius=10)
+            add_ai_button_left_padding -= (self.button_witdh // 4 + 10)
+        self.add_ai_button_rect = self.ui.display_button((add_ai_button_left_padding, top_padding), (self.button_witdh // 2, 15), '+Bot', self.ui.small_text_font, self.ui.red, self.ui.light_red, radius=10)
+
     def show_setting(self):
         return
-                        
-    def start_game(self):
-        if self.selected_mode == "single":
-            if self.map_type == "no_obstacle":
-                game_logic = AIPlayerGameLogic(self.ui, (self.ui.rows // 2, self.ui.cols // 2))
-            elif self.map_type == "obstacle":
-                pass
-            game_logic.game_loop()
-            
-        elif self.selected_mode == "multiplayer":
-            if self.selected_game_mode == "race" and self.map_type == "no_obstacle":
-                game_logic = MultiplayerGameLogic(self.ui, self.map_type)
-            elif self.selected_game_mode == "race" and self.map_type == "obstacle":
-                pass
-            elif self.selected_game_mode == "battle" and self.map_type == "obstacle":
-                pass
-            game_logic.game_loop()

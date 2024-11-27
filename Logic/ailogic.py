@@ -54,6 +54,5 @@ class AIPlayerGameLogic(BaseGameLogic):
         self.ui.draw_snake(self.snake_list, self.ui.red)
         self.ui.display_text(f"AI: {self.score}", self.ui.width - 150, 10, self.ui.red, 20)
         self.ui.refresh_screen()
-
         
             

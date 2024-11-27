@@ -20,6 +20,7 @@ class UI:
         # For null path exception
         self.default_font_path = r'assets/fonts/PressStart2P-Regular.ttf'
         self.default_img_path = r'assets/images/brick.pngf'
+        self.title_font_path = r'assets/fonts/KnightWarrior-w16n8.otf'
         
         # Define cell size
         self.snake_block = 10
@@ -43,12 +44,23 @@ class UI:
         mesg = font_style.render(message, True, self.red)
         self.screen.blit(mesg, [self.width / 6, self.height / 3])
 
-    def refresh_screen(self):
-        pygame.display.flip()
-
     def clear_screen(self):
         self.screen.fill(self.black)
+        # Create border
+        self.display_image(3, 0, 0.15, r"assets/images/border_top_left.png")
+        self.display_image(self.width - 67, 0, 0.15, r"assets/images/border_top_right.png")
+        self.display_image(self.width - 67, self.height - 89, 0.15, r"assets/images/border_bot_right.png")
+        self.display_image(3, self.height - 89, 0.15, r"assets/images/border_bot_left.png")
 
+        # Dont care about this
+        self.display_text_center("@ HCMUTE - 2024", self.height - 14, self.light_red, 15, self.title_font_path)
+    
+    def refresh_screen(self):
+        pygame.display.flip()
+    
+    def update_screen(self):
+        pygame.display.update()
+    
     def draw_grid(self):
         grid_color = self.gray
         grid_width = self.cols * self.snake_block

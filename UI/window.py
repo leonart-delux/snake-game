@@ -102,3 +102,18 @@ class UI:
         
     def display_image(self, x, y, scale_rate, img_path):
         return self.screen.blit(self.load_and_scale_img(scale_rate, img_path), (x, y))
+    
+    def display_button(self, coordinate, size, text, font, text_color, button_color, border_width=0, radius=0, border_color=(0, 0, 0)):   
+        # Draw button 
+        button_rect = pygame.Rect(coordinate, size)
+        pygame.draw.rect(self.screen, button_color, button_rect, border_radius=radius) # Fill
+        pygame.draw.rect(self.screen, border_color, button_rect, border_width, border_radius=radius) # Border
+        
+        # Display text
+        text_surface = font.render(text, True, text_color)
+        text_rect = text_surface.get_rect(center=button_rect.center)
+        self.screen.blit(text_surface, text_rect)
+        return button_rect
+    
+    def display_border(self, coordinate, size, color, width, radius):
+        return pygame.draw.rect(self.screen, color, (coordinate, size), width, radius) 

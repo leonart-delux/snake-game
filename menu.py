@@ -159,10 +159,11 @@ class Menu:
         self.current_screen = 'play'
         
         # Load map
-        self.map_list = [ set() ]
         obstacles_maps = ObstacleMap()
-        self.map_list.extend( obstacles_maps.list_map)
+        self.map_obstacles_list = obstacles_maps.list_map
+        self.map_grid_size_list = obstacles_maps.list_gridsize
         self.selected_map = 0
+        self.ui.define_grid(self.map_grid_size_list[self.selected_map])
             
         # All player along with its need attributes (for example: algorithm box, check for AI or player)
         player_stuff_list = []
@@ -202,11 +203,14 @@ class Menu:
                 
                 # Change map
                 if self.previous_map_button_rect.collidepoint(mouse_x, mouse_y):
-                    self.selected_map = (self.selected_map - 1) % len(self.map_list)
+                    self.selected_map = (self.selected_map - 1) % len(self.map_obstacles_list)
                     self.reset_game(player_stuff_list)
+                    self.ui.define_grid(self.map_grid_size_list[self.selected_map])
                 if self.next_map_button_rect.collidepoint(mouse_x, mouse_y):
-                    self.selected_map = (self.selected_map + 1) % len(self.map_list)
+                    self.selected_map = (self.selected_map + 1) % len(self.map_obstacles_list)
                     self.reset_game(player_stuff_list)
+                    self.ui.define_grid(self.map_grid_size_list[self.selected_map])
+
 
                 # If delete a player
                 for player_stuff in player_stuff_list:
@@ -292,7 +296,7 @@ class Menu:
             self.display_main_functional_board()
             self.display_player_functional_board(player_stuff_list)
             self.ui.draw_grid()
-            self.ui.draw_obstacles(self.map_list[self.selected_map])
+            self.ui.draw_obstacles(self.map_obstacles_list[self.selected_map])
             
             # Update snake UI
             for player_stuff in player_stuff_list:                    
@@ -331,7 +335,7 @@ class Menu:
     def add_human_player(self, player_list):
         player_list.append({
             'name': f'Snake{self.snake_count + 1}',
-            'player': HumanPlayerGameLogic(self.map_list[self.selected_map], self.ui, self.ui.get_snake_color()),
+            'player': HumanPlayerGameLogic(self.map_obstacles_list[self.selected_map], self.ui, self.ui.get_snake_color()),
             'is_human': True,
             'algo_cbb': None,
             'del': None
@@ -342,7 +346,7 @@ class Menu:
         algorithm = Pathfinding((self.ui.rows, self.ui.cols))
         player_list.append({
             'name': f'Snake{self.snake_count + 1}',
-            'player': AIPlayerGameLogic(self.map_list[self.selected_map], self.ui, self.ui.get_snake_color()),
+            'player': AIPlayerGameLogic(self.map_obstacles_list[self.selected_map], self.ui, self.ui.get_snake_color()),
             'is_human': False,
             'algo_cbb': ComboBox(100, 23, algorithm.path_algorithm_names, self.ui.small_text_font, self.ui.white, self.ui.gray, self.ui.white, self.ui.dark_blue),
             'del': None

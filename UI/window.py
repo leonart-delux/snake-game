@@ -33,17 +33,21 @@ class UI:
         self.text_font_2 = pygame.font.Font( r'assets/fonts/KnightWarrior-w16n8.otf', 15)
         self.small_text_font = pygame.font.Font( r'assets/fonts/PressStart2P-Regular.ttf', 10)
         
-        # Define cell size
-        self.snake_block = 10
+
         # Top and left padding for grid, grid position (top left) will start here
         self.grid_pos = self.height // 20
+        self.define_grid(10)
+        
+        # Preload images
+        self.load_border()
+    
+    def define_grid(self, grid_size):
+        # Define cell size
+        self.snake_block = grid_size
         # Grid height is 90% window height
         self.rows = int((self.height * 0.9) // self.snake_block)
         # Grid width is 60% window width
         self.cols = int((self.width * 0.6) // self.snake_block)
-        
-        # Preload images
-        self.load_border()
     
     def load_border(self):
         self.left_top_border_img = self.load_and_scale_img(0.15, r'assets/images/border_top_left.png')

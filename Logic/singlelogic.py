@@ -1,8 +1,8 @@
 from Logic.gamelogic import *
 
 class SinglePlayerGameLogic(BaseGameLogic):
-    def __init__(self, obstacles, ui, initial_pos, snake_color):
-        super().__init__(obstacles, (ui.rows, ui.cols), initial_pos)
+    def __init__(self, obstacles, ui, snake_color):
+        super().__init__(obstacles, (ui.rows, ui.cols))
         self.ui = ui
         self.snake_color = snake_color
         # Indicate if direction is changed in frame loop

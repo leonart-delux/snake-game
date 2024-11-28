@@ -2,8 +2,8 @@ from Logic.gamelogic import *
 from Logic.algorithms import Pathfinding
 
 class AIPlayerGameLogic(BaseGameLogic):
-    def __init__(self, obstacles, ui, initial_pos, snake_color):
-        super().__init__(obstacles, (ui.rows, ui.cols), initial_pos)
+    def __init__(self, obstacles, ui, snake_color):
+        super().__init__(obstacles, (ui.rows, ui.cols))
         self.pathfinding = Pathfinding((self.numb_rows, self.numb_cols))
         
         self.ui = ui

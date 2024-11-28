@@ -172,6 +172,11 @@ class Menu:
         self.is_playing = False
         self.is_human_picked = False
         
+        # Hold temporary obstacles position on map
+        # It's snakes positions
+        # At first no snake --> empty
+        temp_obstacles = set()
+        
         while True:
             # If user click on something
             # I prefer process event click on next frame
@@ -230,21 +235,27 @@ class Menu:
                         player_stuff['player'].handle_events(event)
             
             # Only accept one action in 1 frame
+            # In previous step if a key is stroke for human player and successfully change direction
+            # is_changed_direction changes to true
+            # This one to reset to false
             for player_stuff in player_stuff_list:
                 if player_stuff['is_human']:
                     player_stuff['player'].is_changed_direction = False
-            
+                    break
+                    
             # Process for game
-            if self.is_playing:
-                 # Update temporary obstacles that not constant
-                temp_obstacles = set()
-                # Achieve obstacles 1st
-                for player_stuff in player_stuff_list:
-                    # It should be next snakes positions as ostacles
-                    # If it's current --> may collision
-                    # This is just current positions
+            # Initilization
+            for player_stuff in player_stuff_list:
+                # Havent initialized
+                if not player_stuff['player'].is_initialized:
+                    # Assign current map temporary obstacles
+                    player_stuff['player'].temp_obstacles = temp_obstacles
+                    # Initialize state including snake and food position
+                    player_stuff['player'].initialize()
+                    # Update this snake and food to temp obstacles list
                     temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
-                
+            
+            if self.is_playing:          
                 # Process all data first
                 for player_stuff in player_stuff_list:
                     # Update temporary obstacles to process
@@ -256,20 +267,25 @@ class Menu:
     
                     player_stuff['player'].one_frame_data_process()
                     
-                # Check for validation after process all data            
-                # Update other snakes position for each snake (not inlucde itself)
+                # Update other snakes position for each snake (not inlucding itself) after process all data  
+                player_stuff = None
                 for player_stuff in player_stuff_list:
-                    # Main snake
+                    # Create new map temporary obstacles
+                    # We need this set after last loop
                     temp_obstacles.clear()
                     # For each other snake
                     for other_player_stuff in player_stuff_list:
                         # Ignore current main snake
                         if (player_stuff != other_player_stuff):
-                            # Add each other snake obstacles to temp_obstacles of main snake
+                            # Add each other snake obstacles to temp_obstacles
                             temp_obstacles.update(other_player_stuff['player'].get_snake_as_obstacles())
                      
                     # Add total
                     player_stuff['player'].temp_obstacles = temp_obstacles.copy()
+                
+                # Temp obstacles in this session
+                if player_stuff:
+                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
                         
             # Display frame
             self.ui.clear_screen()
@@ -315,7 +331,7 @@ class Menu:
     def add_human_player(self, player_list):
         player_list.append({
             'name': f'Snake{self.snake_count + 1}',
-            'player': HumanPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0), self.ui.get_snake_color()),
+            'player': HumanPlayerGameLogic(self.map_list[self.selected_map], self.ui, self.ui.get_snake_color()),
             'is_human': True,
             'algo_cbb': None,
             'del': None
@@ -326,7 +342,7 @@ class Menu:
         algorithm = Pathfinding((self.ui.rows, self.ui.cols))
         player_list.append({
             'name': f'Snake{self.snake_count + 1}',
-            'player': AIPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0), self.ui.get_snake_color()),
+            'player': AIPlayerGameLogic(self.map_list[self.selected_map], self.ui, self.ui.get_snake_color()),
             'is_human': False,
             'algo_cbb': ComboBox(100, 23, algorithm.path_algorithm_names, self.ui.small_text_font, self.ui.white, self.ui.gray, self.ui.white, self.ui.dark_blue),
             'del': None

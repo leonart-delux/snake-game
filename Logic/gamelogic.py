@@ -3,21 +3,19 @@ import pygame
 from Logic.algorithms import Pathfinding
 
 class BaseGameLogic:
-    def __init__(self, obstacles, map_size, initial_pos):
+    def __init__(self, obstacles, map_size):
         self.const_obstacles = obstacles
         self.temp_obstacles = set()     # Temporary obstacles on map (snakes)
         self.numb_rows, self.numb_cols = map_size
-        self.initial_pos_row, self.initial_pos_col = initial_pos
         
         # all valid positions map, haven't include snake positions because it's dynamic
         self.valid_positions = {(row, col) for row in range(map_size[0]) for col in range(map_size[1])} - obstacles
         self.snake_speed = 20
-        self.reset_game()
+        self.is_initialized = False
 
-    def reset_game(self):
+    def initialize(self):
         # Set start position
-        self.head_row = self.initial_pos_row
-        self.head_col = self.initial_pos_col
+        self.head_row, self.head_col = self.generate_random_snake_initial_position()
         
         self.snake_list = [(self.head_row, self.head_col)]
         self.length_of_snake = 1
@@ -25,12 +23,18 @@ class BaseGameLogic:
         self.game_over = False
         
         self.food_row, self.food_col = self.generate_random_food_position()
-        self.move_direction = [1, 0]
+        self.move_direction = [-1, 0]
+        self.is_initialized = True
     
-    def update_initial_pos(self, pos_row, pos_col):
-        self.initial_pos_row = pos_row
-        self.initial_pos_col = pos_col
-        
+    def generate_random_snake_initial_position(self):
+        temp_valid_positions = self.valid_positions - self.temp_obstacles
+        return random.choice(list(temp_valid_positions)) if temp_valid_positions else None
+                                    
+    def generate_random_food_position(self):
+        # Don't spam food on snake
+        temp_valid_positions = self.valid_positions - self.temp_obstacles - set(self.snake_list)
+        return random.choice(list(temp_valid_positions)) if temp_valid_positions else None
+    
     def get_snake_as_obstacles(self):
         """
         Get snake and food as obstacles
@@ -38,11 +42,7 @@ class BaseGameLogic:
         snake_obstacles = set(tuple(block) for block in self.snake_list)
         snake_obstacles.add((self.food_row, self.food_col))
         return snake_obstacles
-
-    def remove_food_in_temp_obstacles(self):
-        if (self.food_row, self.food_col) in self.temp_obstacles:
-            self.temp_obstacles.remove((self.food_row, self.food_col))
-        
+      
     def get_next_snake_image_as_ostacles(self):
         """
         Return images of snake in next process move in all available directions
@@ -67,6 +67,10 @@ class BaseGameLogic:
         # If no food, remove tail
         next_snake_images.remove(self.snake_list[0])
         return next_snake_images
+
+    def remove_food_in_temp_obstacles(self):
+        if (self.food_row, self.food_col) in self.temp_obstacles:
+            self.temp_obstacles.remove((self.food_row, self.food_col))
 
     def remov_next_snake_head_in_temp_obstacles(self):
         """
@@ -100,11 +104,6 @@ class BaseGameLogic:
                 
         # Lastly, remove next head position if moving in current direction
         self.temp_obstacles.remove((self.head_row + self.move_direction[0], self.head_col + self.move_direction[1]))
-                        
-    def generate_random_food_position(self):
-        # Don't spam food on snake
-        valid_positions = self.valid_positions - self.temp_obstacles - set(self.snake_list)
-        return random.choice(list(valid_positions)) if valid_positions else None
 
     def update_snake_position(self):
         self.head_row += self.move_direction[0]

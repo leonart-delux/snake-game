@@ -22,7 +22,7 @@ class Menu:
         self.first_player_board_top_padding = self.ui.grid_pos + 90
         self.board_padding = 15
         
-        self.speed_slider = Slider(self.functional_board_x + self.button_witdh + self.button_padding, self.ui.grid_pos + 50, self.button_witdh * 1.5, 1, 60, 30, self.ui.dark_green, self.ui.gray)
+        self.speed_slider = Slider(self.functional_board_x + self.button_witdh + self.button_padding, self.ui.grid_pos + 50, self.button_witdh * 1.5, 1, 100, 30, self.ui.dark_green, self.ui.gray)
         
         # Options for each screen
         option_names = [] 
@@ -55,8 +55,8 @@ class Menu:
         self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green, self.ui.logo_font)        # Title display
         
         # Options for start_screen
-        self.option_names = ['Play', 'Setting', 'Credit', 'Quit'] 
-        self.option_functions = [self.play_creen_handle, self.show_setting, self.credit_screen_handle, self.exit_game]
+        self.option_names = ['Play', 'Map edit', 'Credit', 'Quit'] 
+        self.option_functions = [self.play_screen_handle, self.map_edit_screen_handle, self.credit_screen_handle, self.exit_game]
         
         # Menu and event handler
         options = self.update_start_screen()
@@ -155,7 +155,7 @@ class Menu:
     #       Play screen
     # ==========================
     
-    def play_creen_handle(self):
+    def play_screen_handle(self):
         self.current_screen = 'play'
         
         # Load map
@@ -420,5 +420,83 @@ class Menu:
             add_ai_button_left_padding -= (self.button_witdh // 4 + 10)
         self.add_ai_button_rect = self.ui.display_button((add_ai_button_left_padding, top_padding), (self.button_witdh // 2, 15), '+Bot', self.ui.small_text_font, self.ui.red, self.ui.light_red, radius=10)
 
-    def show_setting(self):
-        return
+    def map_edit_screen_handle(self):
+        self.current_screen = 'mapedit'  
+         
+        # Options for map_editor_screen
+        options = list()
+        option_names = ['Clear', 'Save', 'Back'] 
+        grid_slider = Slider(self.functional_board_x + self.functional_board_width * 0.05, self.ui.grid_pos + 110, self.functional_board_width * 0.9, 5, 40, 15, self.ui.purple, self.ui.white)
+        
+        # New map handle
+        new_obstacles = set()
+        new_size = 15
+        
+        # Display old map
+        map_storage = ObstacleMap()
+
+        option_top_padding = self.ui.grid_pos + self.ui.rows * self.ui.snake_block - 30
+        is_clicked = False
+  
+        while True:
+            self.ui.clear_screen()
+            
+            hoving_option = -1
+            new_size = grid_slider.get_value()
+
+            # Option event
+            mousex, mousey = pygame.mouse.get_pos()
+            
+            for i in range(len(options)):
+                if options[i] and options[i].collidepoint(mousex, mousey):
+                    hoving_option = i
+            
+            if is_clicked and options[0].collidepoint(mousex, mousey):
+                # Clear
+                new_obstacles.clear()
+                
+            if is_clicked and options[1].collidepoint(mousex, mousey):
+                # Save
+                map_storage.add_map(new_obstacles, new_size)
+            
+            if is_clicked and options[2].collidepoint(mousex, mousey):
+                return self.go_back()      
+            
+            is_clicked = False
+
+            # Text display
+            self.ui.display_button((self.functional_board_x, self.ui.grid_pos), (self.functional_board_width, 50), 'Map Editor', self.ui.subtitle_font, self.ui.dark_brown, self.ui.light_brown, 2, 20, self.ui.dark_brown)
+            self.ui.display_text('Grid size:', self.functional_board_x + 15, self.ui.grid_pos + 75, self.ui.white, self.ui.text_font)
+            self.ui.display_text(str(grid_slider.get_value()), self.functional_board_x + self.functional_board_width - 40, self.ui.grid_pos + 75, self.ui.white, self.ui.text_font)
+            
+            # Grid size slider
+            grid_slider.draw(self.ui.screen)
+            
+            # Instructions
+            self.ui.display_text('Mode: Draw', self.functional_board_x + 15, self.ui.grid_pos + 160, self.ui.white, self.ui.text_font)
+            self.ui.display_text('E to Erase..', self.functional_board_x + 25, self.ui.grid_pos + 190, self.ui.yellow, self.ui.funny_font)
+            self.ui.display_text('D to Draw!!', self.functional_board_x + 25, self.ui.grid_pos + 260, self.ui.green, self.ui.funny_font)
+
+            # Option display
+            options.clear()
+            for i in range(len(option_names)):
+                color = self.ui.blue if i != hoving_option else self.ui.red
+                options.append(self.ui.display_text(option_names[i], self.functional_board_x + 110 * i, option_top_padding, color, self.ui.subtitle_font_2))
+
+            # Display
+            self.ui.define_grid(grid_slider.get_value())
+            self.ui.draw_grid()
+            self.ui.draw_obstacles(new_obstacles)
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.exit_game()
+                    
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    is_clicked = True                
+                    
+                grid_slider.handle_event(event)
+            
+            self.ui.update_screen()
+            self.ui.clock.tick(30)
+                

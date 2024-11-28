@@ -19,6 +19,8 @@ class UI:
         self.gray = (34, 34, 34)
         self.purple = (142, 91, 227)
         self.yellow = (173, 153, 49)
+        self.dark_brown = (48, 36, 22)
+        self.light_brown = (112, 73, 26)
         
         self.snake_color = [ self.yellow, self.purple, self.green, self.blue, self.red ]
         
@@ -29,11 +31,12 @@ class UI:
         self.logo_font = pygame.font.Font( r'assets/fonts/KnightWarrior-w16n8.otf', 100)
         self.title_font = pygame.font.Font( r'assets/fonts/KnightWarrior-w16n8.otf', 40)
         self.subtitle_font = pygame.font.Font( r'assets/fonts/PressStart2P-Regular.ttf', 25)
+        self.subtitle_font_2 = pygame.font.Font( r'assets/fonts/KnightWarrior-w16n8.otf', 30)
         self.text_font = pygame.font.Font( r'assets/fonts/PressStart2P-Regular.ttf', 15)
         self.text_font_2 = pygame.font.Font( r'assets/fonts/KnightWarrior-w16n8.otf', 15)
         self.small_text_font = pygame.font.Font( r'assets/fonts/PressStart2P-Regular.ttf', 10)
+        self.funny_font = pygame.font.Font( r'assets/fonts/MightySouly-lxggD.ttf', 50)
         
-
         # Top and left padding for grid, grid position (top left) will start here
         self.grid_pos = self.height // 20
         self.define_grid(10)

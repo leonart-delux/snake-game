@@ -102,7 +102,6 @@ class BaseGameLogic:
         self.head_col += self.move_direction[1]
         
         self.check_eat_food()
-        self.check_validation()
 
         # Update new head position
         self.snake_list.append((self.head_row, self.head_col))

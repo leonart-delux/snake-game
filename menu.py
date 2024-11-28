@@ -1,6 +1,6 @@
 import pygame
 from Logic.gamelogic import *
-from Logic.multiplaylogic import MultiplayerGameLogic
+from Logic.singlelogic import SinglePlayerGameLogic as HumanPlayerGameLogic
 from Logic.ailogic import AIPlayerGameLogic
 from obstacles import ObstacleMap
 from UI.window import * 
@@ -172,52 +172,6 @@ class Menu:
         self.is_human_picked = False
         
         while True:
-            # Display frame
-            self.ui.clear_screen()
-            self.display_main_functional_board()
-            self.display_player_functional_board(player_stuff_list)
-            self.ui.draw_grid()
-            self.ui.draw_obstacles(self.map_list[self.selected_map])
-            
-            # Process for game
-            if self.is_playing:
-                 # Update temporary obstacles that not constant
-                temp_obstacles = set()
-                # Achieve obstacles 1st
-                for player_stuff in player_stuff_list:
-                    # It should be next snakes positions as ostacles
-                    # If it's current --> may collision
-                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
-                
-                # Process all data first
-                for player_stuff in player_stuff_list:
-                    # Update temporary obstacles to process
-                    player_stuff['player'].temp_obstacles = temp_obstacles.copy()
-                    # Update algorithm to process
-                    player_stuff['player'].algorithm = player_stuff['player'].pathfinding.path_algorithm[player_stuff['algo_cbb'].selected]
-
-                    player_stuff['player'].one_frame_data_process()
-                    
-                # Check for validation after process all data
-                # Retrieve snake obstacles first
-                temp_obstacles.clear()
-                for player_stuff in player_stuff_list:
-                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
-                
-                # Update other snakes position for each snake (not inlucde itself)
-                for player_stuff in player_stuff_list:
-                    player_stuff['player'].temp_obstacles = temp_obstacles - player_stuff['player'].get_snake_as_obstacles()
-                    
-                # Check valid
-                for player_stuff in player_stuff_list:
-                    player_stuff['player'].check_validation()
-            
-            
-            # Update screen
-            for player_stuff in player_stuff_list:                    
-                player_stuff['player'].update_screen()     
-                
-                    
             # If user click on something
             # I prefer process event click on next frame
             mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -228,6 +182,7 @@ class Menu:
                 # Reset game
                 if self.reset_button_rect.collidepoint(mouse_x, mouse_y):
                     self.is_playing = False
+                    self.is_human_picked = False
                     player_stuff_list.clear()
                 # Go back
                 if self.back_button_rect.collidepoint(mouse_x, mouse_y):
@@ -236,6 +191,7 @@ class Menu:
                 # Add player
                 if self.add_human_button_rect.collidepoint(mouse_x, mouse_y):
                     self.is_human_picked = True
+                    self.add_human_player(player_stuff_list)
                 if self.add_ai_button_rect.collidepoint(mouse_x, mouse_y):
                     self.add_ai_player(player_stuff_list)
 
@@ -258,18 +214,79 @@ class Menu:
                     
                 self.speed_slider.handle_event(event)
                 for player_stuff in player_stuff_list:
-                    if player_stuff:
+                    # Handle for algorithm choice of AI
+                    if player_stuff and not player_stuff['is_human']:
                         player_stuff['algo_cbb'].handle_event(event)
+                    # Human play handle key stroke
+                    elif player_stuff['is_human']:
+                        player_stuff['player'].handle_events(event)
+            
+            
+            # Display frame
+            self.ui.clear_screen()
+            self.display_main_functional_board()
+            self.display_player_functional_board(player_stuff_list)
+            self.ui.draw_grid()
+            self.ui.draw_obstacles(self.map_list[self.selected_map])
+            
+            # Process for game
+            if self.is_playing:
+                 # Update temporary obstacles that not constant
+                temp_obstacles = set()
+                # Achieve obstacles 1st
+                for player_stuff in player_stuff_list:
+                    # It should be next snakes positions as ostacles
+                    # If it's current --> may collision
+                    # This is just current positions
+                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
+                
+                # Process all data first
+                for player_stuff in player_stuff_list:
+                    # Update temporary obstacles to process
+                    player_stuff['player'].temp_obstacles = temp_obstacles.copy()
+                    
+                    # Update algorithm to process in case AI
+                    if not player_stuff['is_human']:
+                        player_stuff['player'].algorithm = player_stuff['player'].pathfinding.path_algorithm[player_stuff['algo_cbb'].selected]
+    
+                    player_stuff['player'].one_frame_data_process()
+                    
+                # Check for validation after process all data
+                # Retrieve snake obstacles after process first
+                temp_obstacles.clear()
+                for player_stuff in player_stuff_list:
+                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
+                
+                # Update other snakes position for each snake (not inlucde itself)
+                for player_stuff in player_stuff_list:
+                    player_stuff['player'].temp_obstacles = temp_obstacles - player_stuff['player'].get_snake_as_obstacles()
+                    
+                # Check valid
+                for player_stuff in player_stuff_list:
+                    player_stuff['player'].check_validation()
+            
+            
+            # Update screen
+            for player_stuff in player_stuff_list:                    
+                player_stuff['player'].update_screen()     
             
             self.ui.clock.tick(self.speed_slider.get_value())
             self.ui.refresh_screen()
     
+    def add_human_player(self, player_list):
+        player_list.append({
+            'player': HumanPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0)),
+            'is_human': True,
+            'algo_cbb': None,
+            'del': None
+        })
+    
     def add_ai_player(self, player_list):
-        self.algorithm = Pathfinding((self.ui.rows, self.ui.cols))
+        algorithm = Pathfinding((self.ui.rows, self.ui.cols))
         player_list.append({
             'player': AIPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0)),
             'is_human': False,
-            'algo_cbb': ComboBox(100, 23, self.algorithm.path_algorithm_names, self.ui.small_text_font, self.ui.white, self.ui.gray, self.ui.white, self.ui.dark_blue),
+            'algo_cbb': ComboBox(100, 23, algorithm.path_algorithm_names, self.ui.small_text_font, self.ui.white, self.ui.gray, self.ui.white, self.ui.dark_blue),
             'del': None
         })
             
@@ -304,16 +321,18 @@ class Menu:
             
             # Test information
             self.ui.display_text(f'Score {player_stuff['player'].score}', self.functional_board_x + 13, back_board_top_padding + 10, self.ui.white, self.ui.text_font)
-            self.ui.display_text(f'P {player_stuff['player'].traveled_count}', self.functional_board_x + 16, back_board_top_padding + 40, self.ui.white, self.ui.small_text_font)
-
+            
             # Player tag
             self.ui.display_button((self.functional_board_x + self.functional_board_width - 82, back_board_top_padding + 5), (30, 20), 'HM' if player_stuff['is_human'] else 'AI', self.ui.text_font_2, self.ui.gray, self.ui.light_blue, radius=10)
-
+            
             # Delete player
             player_stuff['del'] = self.ui.display_button((self.functional_board_x + self.functional_board_width - 42, back_board_top_padding + 5), (30, 20), 'DEL', self.ui.text_font_2, self.ui.white, self.ui.red, radius=10)
             
-            # Display algorithm_box if has (human case dont have this)
-            if player_stuff['algo_cbb']:
+            # AI information display
+            if not player_stuff['is_human']:
+                # Traveled count
+                self.ui.display_text(f'P {player_stuff['player'].traveled_count}', self.functional_board_x + 16, back_board_top_padding + 40, self.ui.white, self.ui.small_text_font)
+                
                 # Draw unopen combo box first
                 if not player_stuff['algo_cbb'].is_open:
                     player_stuff['algo_cbb'].draw(self.ui.screen, self.functional_board_x + 180, back_board_top_padding + 35)
@@ -321,11 +340,11 @@ class Menu:
                 else:
                     open_cbb_index = i
                     open_cbb_top_padd = back_board_top_padding + 35
-        
+            
         # If a combobox is open, it should be drawn last
         if open_cbb_index != -1:
             player_stuff_list[open_cbb_index]['algo_cbb'].draw(self.ui.screen, self.functional_board_x + 180, open_cbb_top_padd)
-        
+               
         # Max player
         if (len(player_stuff_list) >= 5):
             return

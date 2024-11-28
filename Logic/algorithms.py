@@ -4,11 +4,12 @@ import heapq
 class Pathfinding:
     def __init__(self, map_size):
         self.numb_rows, self.numb_cols = map_size
-        self.path_algorithm_names = ['BFS', 'DFS', 'Astar', 'Hill', 'Beam']
+        self.path_algorithm_names = ['BFS', 'DFS', 'Astar', 'Greedy', 'Hill', 'Beam']
         self.path_algorithm = {
             'BFS': self.bfs,
             'DFS': self.dfs,
             'Astar': self.a_star,
+            'Greedy': self.greedy,
             'Hill': self.hill_climbing,
             'Beam': self.beam_search
         }
@@ -132,6 +133,42 @@ class Pathfinding:
                     came_from[neighbor] = current
 
         return [], len(came_from)
+
+    def greedy(self, start, goal, obstacles_list):
+        """
+        Greedy Best-First Search algorithm.
+        """
+        priority_queue = []
+        heapq.heappush(priority_queue, (self.heuristic(start, goal), start))
+        
+        came_from = {start: None}
+        visited = set()
+
+        while priority_queue:
+            _, current = heapq.heappop(priority_queue)
+
+            if current == goal:
+                path = []
+                while current:
+                    path.append(current)
+                    current = came_from[current]
+                return path[::-1][1:], len(came_from)
+
+            visited.add(current)
+
+            for direction in self.directions:
+                neighbor = (current[0] + direction[0], current[1] + direction[1])
+                
+                if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
+                    neighbor[1] < 0 or neighbor[1] >= self.numb_cols or
+                    neighbor in obstacles_list or neighbor in visited):
+                    continue
+
+                if neighbor not in came_from:
+                    heapq.heappush(priority_queue, (self.heuristic(neighbor, goal), neighbor))
+                    came_from[neighbor] = current
+
+        return [], len(came_from)  
 
     def hill_climbing(self, start, goal, obstacles_list):
         current = start

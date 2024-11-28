@@ -18,7 +18,7 @@ class UI:
         self.dark_blue = (34, 87, 122)
         self.gray = (34, 34, 34)
         self.purple = (142, 91, 227)
-        self.yellow = (224, 197, 61)
+        self.yellow = (173, 153, 49)
         
         self.snake_color = [ self.yellow, self.purple, self.green, self.blue, self.red ]
         

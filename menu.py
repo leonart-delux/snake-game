@@ -159,7 +159,7 @@ class Menu:
         map_list = [ set() ]
         obstacles_maps = ObstacleMap()
         map_list.extend( obstacles_maps.list_map)
-        selected_map = 0
+        selected_map = 1
             
         # All player along with its need attributes (for example: algorithm box, check for AI or player)
         player_stuff_list = []
@@ -247,6 +247,9 @@ class Menu:
         })
             
     def display_main_functional_board(self):
+        """
+        Main functional board
+        """
         # Change map
         self.previous_map_button_rect = self.ui.display_image(self.functional_board_x - 40, self.ui.grid_pos, (30/128), r"assets/images/up-arrow.png")
         self.next_map_button_rect = self.ui.display_image(self.functional_board_x - 40, self.ui.grid_pos + self.ui.rows * self.ui.snake_block - 30, (30/128), r"assets/images/down-arrow.png")
@@ -262,6 +265,9 @@ class Menu:
         self.ui.display_text(str(self.speed_slider.get_value()), self.functional_board_x + (self.button_witdh + self.button_padding) * 2.45, self.ui.grid_pos + self.pause_button_rect.height + 13, self.ui.red, self.ui.text_font)
     
     def display_player_functional_board(self, player_stuff_list):
+        """
+        Each functional board of each snake
+        """
         open_cbb_index = -1
         open_cbb_top_padd = 0
         for i, player_stuff in enumerate(player_stuff_list):
@@ -270,8 +276,8 @@ class Menu:
             self.ui.display_button((self.functional_board_x, back_board_top_padding), (self.functional_board_width, 70), '', self.ui.text_font, self.ui.white, self.ui.dark_blue, radius=10)
             
             # Test information
-            self.ui.display_text(f'Score {1}', self.functional_board_x + 13, back_board_top_padding + 10, self.ui.white, self.ui.text_font)
-            self.ui.display_text(f'Pass {10000}', self.functional_board_x + 16, back_board_top_padding + 40, self.ui.white, self.ui.small_text_font)
+            self.ui.display_text(f'Score {player_stuff['player'].score}', self.functional_board_x + 13, back_board_top_padding + 10, self.ui.white, self.ui.text_font)
+            self.ui.display_text(f'P {player_stuff['player'].traveled_count}', self.functional_board_x + 16, back_board_top_padding + 40, self.ui.white, self.ui.small_text_font)
 
             # Player tag
             self.ui.display_button((self.functional_board_x + self.functional_board_width - 82, back_board_top_padding + 5), (30, 20), 'HM' if player_stuff['is_human'] else 'AI', self.ui.text_font_2, self.ui.gray, self.ui.light_blue, radius=10)

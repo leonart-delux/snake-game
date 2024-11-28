@@ -4,10 +4,13 @@ from Logic.algorithms import Pathfinding
 
 class BaseGameLogic:
     def __init__(self, obstacles, map_size, initial_pos):
-        self.obstacles = obstacles
+        self.const_obstacles = obstacles
+        self.temp_obstacles = set()     # Temporary obstacles on map (snakes)
         self.numb_rows, self.numb_cols = map_size
         self.initial_pos_row, self.initial_pos_col = initial_pos
         
+        # all valid positions map, haven't include snake positions because it's dynamic
+        self.valid_positions = {(row, col) for row in range(map_size[0]) for col in range(map_size[1])} - obstacles
         self.snake_speed = 20
         self.reset_game()
 
@@ -28,27 +31,30 @@ class BaseGameLogic:
     def update_initial_pos(self, pos_row, pos_col):
         self.initial_pos_row = pos_row
         self.initial_pos_col = pos_col
-    
-    def update_obstacles(self, ostacles):
-        self.obstacles = ostacles
-
-    def get_snake_as_ostacles(self):
-        return set(tuple(block) for block in self.snake_list)
+        
+    def get_next_snake_image_as_ostacles(self):
+        """
+        Return images of snake in next process move in all available directions
+        May include obstacles accross boundaries, just don't care
+        """
+        next_snake_images = set(tuple(block) for block in self.snake_list)
+        for dir_x, dir_y in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            next_head_row = self.head_row + dir_x
+            next_head_col = self.head_col + dir_y
+            next_snake_images.update((next_head_row, next_head_col))
+        
+        # Check for food
+        # If next move can eat food, then tail is longer, just return the whole current snake and next heads
+        if abs(self.head_row - self.food_row) + abs(self.head_col - self.food_col) == 1:
+            return next_snake_images
+        
+        # If no food, remove tail
+        return next_snake_images.remove(tuple(self.snake_list[0]))
                         
     def generate_random_food_position(self):
-        # Create valid position list for food
-        valid_positions = [
-            (row_pos, col_pos)
-            for row_pos in range(self.numb_rows)
-            for col_pos in range(self.numb_cols)
-            if (row_pos, col_pos) not in self.obstacles and (row_pos, col_pos) not in self.snake_list
-        ]
-        # No valid position 
-        if not valid_positions:
-            return None
-        
-        # Return a value in valid list
-        return random.choice(valid_positions)
+        # Don't spam food on snake
+        valid_positions = self.valid_positions -  set(self.snake_list)
+        return random.choice(list(valid_positions)) if valid_positions else None
 
     def update_snake_position(self):
         self.head_row += self.move_direction[0]
@@ -60,6 +66,16 @@ class BaseGameLogic:
         if len(self.snake_list) > self.length_of_snake:
             # Del first element = tail of snake when no food is eaten, snake is moving only 
             del self.snake_list[0]
+        
+    def update_map(self, new_rows, new_cols, new_obstacles):
+        """
+        Update needed variables when new map is pushed in
+        It's like create new logic, anyway ...
+        """
+        self.numb_rows = new_rows
+        self.numb_cols = new_cols
+        self.const_obstacles = new_obstacles
+        self.valid_positions = {(row, col) for row in range(new_rows) for col in range(new_cols)} - new_obstacles
 
     def check_boundaries(self):
         if (self.head_row < 0) or (self.head_row >= self.numb_rows) or (self.head_col < 0) or (self.head_col >= self.numb_cols):
@@ -78,12 +94,4 @@ class BaseGameLogic:
             # Clear old path
             self.path = []
 
-    def handle_game_close_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    self.game_over = False
-                    self.game_close = True
-                if event.key == pygame.K_c:
-                    self.reset_game()
 

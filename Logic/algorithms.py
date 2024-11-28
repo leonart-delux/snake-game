@@ -43,7 +43,7 @@ class Pathfinding:
                 while current:
                     path.append(current)
                     current = came_from[current]
-                return path[::-1][1:]
+                return path[::-1][1:], len(came_from)
 
             for direction in self.directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
@@ -60,7 +60,7 @@ class Pathfinding:
                 queue.append(neighbor)
                 came_from[neighbor] = current
 
-        return []
+        return [], len(came_from)
         
     def dfs(self, start, goal, obstacles_list):
         stack = [start]
@@ -73,7 +73,7 @@ class Pathfinding:
                 while current:
                     path.append(current)
                     current = came_from[current]
-                return path[::-1][1:]
+                return path[::-1][1:], len(came_from)
 
             for direction in self.directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
@@ -87,7 +87,7 @@ class Pathfinding:
                 stack.append(neighbor)
                 came_from[neighbor] = current
 
-        return []
+        return [], len(came_from)
     
     def heuristic(self, a, b):
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
@@ -108,7 +108,7 @@ class Pathfinding:
                 while current:
                     path.append(current)
                     current = came_from[current]
-                return path[::-1][1:]
+                return path[::-1][1:], len(came_from)
 
             for direction in self.directions:
                 neighbor = (current[0] + direction[0], current[1] + direction[1])
@@ -131,7 +131,7 @@ class Pathfinding:
                     heapq.heappush(open_set, (f_score, neighbor))
                     came_from[neighbor] = current
 
-        return []
+        return [], len(came_from)
 
     def hill_climbing(self, start, goal, obstacles_list):
         current = start
@@ -154,7 +154,7 @@ class Pathfinding:
 
             # If no valid neighbors, we are stuck. Backtrack to the previous node can solve this but I think it's not necessary due to our purpose of making this game.
             if not neighbors:
-                return []
+                return [], len(came_from)
 
             # Select the neighbor with the best heuristic value (greedy choice)
             next_step = min(neighbors, key=lambda x: x[0])[1]
@@ -167,7 +167,7 @@ class Pathfinding:
             path.append(current)
             current = came_from[current]
         
-        return path[::-1][1:]
+        return path[::-1][1:], len(came_from)
 
     def beam_search(self, start, goal, obstacles_list, beam_width=2):
         open_set = [(self.heuristic(start, goal), start)] 
@@ -184,7 +184,7 @@ class Pathfinding:
                     while current:
                         path.append(current)
                         current = came_from[current]
-                    return path[::-1][1:] 
+                    return path[::-1][1:], len(came_from)
 
                 for direction in self.directions:
                     neighbor = (current[0] + direction[0], current[1] + direction[1])
@@ -207,7 +207,7 @@ class Pathfinding:
             # Choose the best nodes from new_open_set
             open_set = sorted(new_open_set, key=lambda x: x[0])[:beam_width]
             
-        return [] 
+        return [], len(came_from)
         
     def flood_fill(self, position, obstacles_list):
         """

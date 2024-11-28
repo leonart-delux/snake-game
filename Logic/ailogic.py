@@ -8,6 +8,7 @@ class AIPlayerGameLogic(BaseGameLogic):
         
         self.ui = ui
         self.path = []
+        self.traveled_count = 0
         self.algorithm = self.pathfinding.path_algorithm['BFS']
 
     def find_move(self, temp_obstacles):
@@ -19,7 +20,8 @@ class AIPlayerGameLogic(BaseGameLogic):
             obstacles_and_snake = self.obstacles | temp_obstacles 
             start = (self.head_row, self.head_col)
             goal = (self.food_row, self.food_col)
-            self.path = self.pathfinding.find_path(start, goal, obstacles_and_snake, self.algorithm)
+            self.path, turn_traveled_count = self.pathfinding.find_path(start, goal, obstacles_and_snake, self.algorithm)
+            self.traveled_count += turn_traveled_count
             
             if not self.path: # if it still can't find a path
                 safe_move = self.pathfinding.find_safe_move(obstacles_and_snake, (self.head_row, self.head_col))

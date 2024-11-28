@@ -32,7 +32,11 @@ class BaseGameLogic:
         self.initial_pos_col = pos_col
         
     def get_snake_as_obstacles(self):
-        return set(tuple(block) for block in self.snake_list)
+        """
+        Get snake and food as obstacles
+        """
+        snake_obstacles = set(tuple(block) for block in self.snake_list)
+        snake_obstacles.add((self.food_row, self.food_col))
         
     def get_next_snake_image_as_ostacles(self):
         """
@@ -109,16 +113,6 @@ class BaseGameLogic:
         if len(self.snake_list) > self.length_of_snake:
             # Del first element = tail of snake when no food is eaten, snake is moving only 
             del self.snake_list[0]
-        
-    def update_map(self, new_rows, new_cols, new_obstacles):
-        """
-        Update needed variables when new map is pushed in
-        It's like create new logic, anyway ...
-        """
-        self.numb_rows = new_rows
-        self.numb_cols = new_cols
-        self.const_obstacles = new_obstacles
-        self.valid_positions = {(row, col) for row in range(new_rows) for col in range(new_cols)} - new_obstacles
     
     def check_validation(self):      
         self.check_collisions()

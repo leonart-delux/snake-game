@@ -188,7 +188,7 @@ class Menu:
                     for _ in range(len(player_stuff_list)):
                         player = player_stuff_list.pop()
                         self.delete_player(player_stuff_list, player)
-                        
+
                 # Go back
                 if self.back_button_rect.collidepoint(mouse_x, mouse_y):
                     return self.go_back
@@ -342,16 +342,16 @@ class Menu:
         for i, player_stuff in enumerate(player_stuff_list):
             back_board_top_padding = self.first_player_board_top_padding + (70 + self.board_padding) * i
             # Back board
-            self.ui.display_button((self.functional_board_x, back_board_top_padding), (self.functional_board_width, 70), '', self.ui.text_font, self.ui.white, self.ui.dark_blue, radius=10)
+            self.ui.display_button((self.functional_board_x, back_board_top_padding), (self.functional_board_width, 70), '', self.ui.text_font, self.ui.white, player_stuff['player'].snake_color, radius=10)
             
             # Test information
             self.ui.display_text(f'{player_stuff['name']}-{player_stuff['player'].score}', self.functional_board_x + 13, back_board_top_padding + 10, self.ui.white, self.ui.text_font)
             
             # Player tag
-            self.ui.display_button((self.functional_board_x + self.functional_board_width - 82, back_board_top_padding + 5), (30, 20), 'HM' if player_stuff['is_human'] else 'AI', self.ui.text_font_2, self.ui.gray, self.ui.light_blue, radius=10)
+            self.ui.display_button((self.functional_board_x + self.functional_board_width - 82, back_board_top_padding + 5), (30, 20), 'HM' if player_stuff['is_human'] else 'AI', self.ui.text_font_2, self.ui.gray, self.ui.light_blue, 1, 10, self.ui.gray)
             
             # Delete player
-            player_stuff['del'] = self.ui.display_button((self.functional_board_x + self.functional_board_width - 42, back_board_top_padding + 5), (30, 20), 'DEL', self.ui.text_font_2, self.ui.white, self.ui.red, radius=10)
+            player_stuff['del'] = self.ui.display_button((self.functional_board_x + self.functional_board_width - 42, back_board_top_padding + 5), (30, 20), 'DEL', self.ui.text_font_2, self.ui.white, self.ui.red, 1, 10, self.ui.gray)
             
             # AI information display
             if not player_stuff['is_human']:

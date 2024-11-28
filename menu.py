@@ -9,7 +9,7 @@ class Menu:
     def __init__(self, ui):
         self.ui = ui
         self.current_screen = None
-        self.snake_count = 1
+        self.snake_count = 0
         
         # Functional board variables in play screen
         self.functional_board_x = self.ui.grid_pos + self.ui.cols * self.ui.snake_block + 50
@@ -185,6 +185,7 @@ class Menu:
                     self.is_playing = False
                     self.is_human_picked = False
                     player_stuff_list.clear()
+                    self.snake_count = 0
                 # Go back
                 if self.back_button_rect.collidepoint(mouse_x, mouse_y):
                     return self.go_back
@@ -202,7 +203,7 @@ class Menu:
                         # If man player is deleted
                         if player_stuff['is_human']:
                             self.is_human_picked = False
-                        player_stuff_list.remove(player_stuff)
+                        self.delete_player(player_stuff_list, player_stuff)
                         
             is_clicked = False
 
@@ -268,7 +269,7 @@ class Menu:
                         # If human lose --> human can picked again
                         if player_stuff['is_human']:
                             self.is_human_picked = False
-                        player_stuff_list.remove(player_stuff)
+                        self.delete_player(player_stuff_list, player_stuff)
                     
             # Display frame
             self.ui.clear_screen()
@@ -283,11 +284,17 @@ class Menu:
             
             self.ui.clock.tick(self.speed_slider.get_value())
             self.ui.refresh_screen()
+        
+    def delete_player(self, player_list, player):
+        if player['player'].snake_color:
+            self.ui.return_snake_color(player['player'].snake_color)
+        if player in player_list:
+            player_list.remove(player)
     
     def add_human_player(self, player_list):
         player_list.append({
-            'name': f'Snake {self.snake_count}',
-            'player': HumanPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0)),
+            'name': f'Snake {self.snake_count + 1}',
+            'player': HumanPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0), self.ui.get_snake_color()),
             'is_human': True,
             'algo_cbb': None,
             'del': None
@@ -297,8 +304,8 @@ class Menu:
     def add_ai_player(self, player_list):
         algorithm = Pathfinding((self.ui.rows, self.ui.cols))
         player_list.append({
-            'name': f'Snake{self.snake_count}',
-            'player': AIPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0)),
+            'name': f'Snake{self.snake_count + 1}',
+            'player': AIPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0), self.ui.get_snake_color()),
             'is_human': False,
             'algo_cbb': ComboBox(100, 23, algorithm.path_algorithm_names, self.ui.small_text_font, self.ui.white, self.ui.gray, self.ui.white, self.ui.dark_blue),
             'del': None

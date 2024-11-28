@@ -37,6 +37,7 @@ class BaseGameLogic:
         """
         snake_obstacles = set(tuple(block) for block in self.snake_list)
         snake_obstacles.add((self.food_row, self.food_col))
+        return snake_obstacles
         
     def get_next_snake_image_as_ostacles(self):
         """

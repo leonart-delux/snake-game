@@ -182,12 +182,7 @@ class Menu:
                     self.is_playing = not self.is_playing
                 # Reset game
                 if self.reset_button_rect.collidepoint(mouse_x, mouse_y):
-                    self.is_playing = False
-                    self.is_human_picked = False
-                    self.snake_count = 0
-                    for _ in range(len(player_stuff_list)):
-                        player = player_stuff_list.pop()
-                        self.delete_player(player_stuff_list, player)
+                    self.reset_game(player_stuff_list)
 
                 # Go back
                 if self.back_button_rect.collidepoint(mouse_x, mouse_y):
@@ -199,6 +194,14 @@ class Menu:
                     self.add_human_player(player_stuff_list)
                 if self.add_ai_button_rect.collidepoint(mouse_x, mouse_y):
                     self.add_ai_player(player_stuff_list)
+                
+                # Change map
+                if self.previous_map_button_rect.collidepoint(mouse_x, mouse_y):
+                    self.selected_map = (self.selected_map - 1) % len(self.map_list)
+                    self.reset_game(player_stuff_list)
+                if self.next_map_button_rect.collidepoint(mouse_x, mouse_y):
+                    self.selected_map = (self.selected_map + 1) % len(self.map_list)
+                    self.reset_game(player_stuff_list)
 
                 # If delete a player
                 for player_stuff in player_stuff_list:
@@ -253,16 +256,35 @@ class Menu:
     
                     player_stuff['player'].one_frame_data_process()
                     
-                # Check for validation after process all data
-                # Retrieve snake obstacles after process first
-                temp_obstacles.clear()
-                for player_stuff in player_stuff_list:
-                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
-                
+                # Check for validation after process all data            
                 # Update other snakes position for each snake (not inlucde itself)
                 for player_stuff in player_stuff_list:
-                    player_stuff['player'].temp_obstacles = temp_obstacles - player_stuff['player'].get_snake_as_obstacles()
-                    
+                    # Main snake
+                    temp_obstacles.clear()
+                    # For each other snake
+                    for other_player_stuff in player_stuff_list:
+                        # Ignore current main snake
+                        if (player_stuff != other_player_stuff):
+                            # Add each other snake obstacles to temp_obstacles of main snake
+                            temp_obstacles.update(other_player_stuff['player'].get_snake_as_obstacles())
+                     
+                    # Add total
+                    player_stuff['player'].temp_obstacles = temp_obstacles.copy()
+                        
+            # Display frame
+            self.ui.clear_screen()
+            self.display_main_functional_board()
+            self.display_player_functional_board(player_stuff_list)
+            self.ui.draw_grid()
+            self.ui.draw_obstacles(self.map_list[self.selected_map])
+            
+            # Update snake UI
+            for player_stuff in player_stuff_list:                    
+                player_stuff['player'].update_screen()  
+                
+            self.ui.refresh_screen()
+            
+            if self.is_playing:
                 # Check valid
                 for player_stuff in player_stuff_list:
                     player_stuff['player'].check_validation()
@@ -273,21 +295,17 @@ class Menu:
                         if player_stuff['is_human']:
                             self.is_human_picked = False
                         self.delete_player(player_stuff_list, player_stuff)
-                    
-            # Display frame
-            self.ui.clear_screen()
-            self.display_main_functional_board()
-            self.display_player_functional_board(player_stuff_list)
-            self.ui.draw_grid()
-            self.ui.draw_obstacles(self.map_list[self.selected_map])
-            
-            # Update snake UI
-            for player_stuff in player_stuff_list:                    
-                player_stuff['player'].update_screen()     
             
             self.ui.clock.tick(self.speed_slider.get_value())
-            self.ui.refresh_screen()
-        
+    
+    def reset_game(self, player_stuff_list):
+        self.is_playing = False
+        self.is_human_picked = False
+        self.snake_count = 0
+        for _ in range(len(player_stuff_list)):
+            player = player_stuff_list.pop()
+            self.delete_player(player_stuff_list, player)
+    
     def delete_player(self, player_list, player):
         if player['player'].snake_color:
             self.ui.return_snake_color(player['player'].snake_color)
@@ -296,7 +314,7 @@ class Menu:
     
     def add_human_player(self, player_list):
         player_list.append({
-            'name': f'Snake {self.snake_count + 1}',
+            'name': f'Snake{self.snake_count + 1}',
             'player': HumanPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0), self.ui.get_snake_color()),
             'is_human': True,
             'algo_cbb': None,

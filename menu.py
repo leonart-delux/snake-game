@@ -184,8 +184,11 @@ class Menu:
                 if self.reset_button_rect.collidepoint(mouse_x, mouse_y):
                     self.is_playing = False
                     self.is_human_picked = False
-                    player_stuff_list.clear()
                     self.snake_count = 0
+                    for _ in range(len(player_stuff_list)):
+                        player = player_stuff_list.pop()
+                        self.delete_player(player_stuff_list, player)
+                        
                 # Go back
                 if self.back_button_rect.collidepoint(mouse_x, mouse_y):
                     return self.go_back

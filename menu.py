@@ -9,6 +9,7 @@ class Menu:
     def __init__(self, ui):
         self.ui = ui
         self.current_screen = None
+        self.snake_count = 1
         
         # Functional board variables in play screen
         self.functional_board_x = self.ui.grid_pos + self.ui.cols * self.ui.snake_block + 50
@@ -221,13 +222,10 @@ class Menu:
                     elif player_stuff['is_human']:
                         player_stuff['player'].handle_events(event)
             
-            
-            # Display frame
-            self.ui.clear_screen()
-            self.display_main_functional_board()
-            self.display_player_functional_board(player_stuff_list)
-            self.ui.draw_grid()
-            self.ui.draw_obstacles(self.map_list[self.selected_map])
+            # Only accept one action in 1 frame
+            for player_stuff in player_stuff_list:
+                if player_stuff['is_human']:
+                    player_stuff['player'].is_changed_direction = False
             
             # Process for game
             if self.is_playing:
@@ -264,9 +262,22 @@ class Menu:
                 # Check valid
                 for player_stuff in player_stuff_list:
                     player_stuff['player'].check_validation()
+                    # Check lose
+                    if player_stuff['player'].game_over:
+                        player_stuff['player'].handle_lose(f'{player_stuff['name']} has lost.')
+                        # If human lose --> human can picked again
+                        if player_stuff['is_human']:
+                            self.is_human_picked = False
+                        player_stuff_list.remove(player_stuff)
+                    
+            # Display frame
+            self.ui.clear_screen()
+            self.display_main_functional_board()
+            self.display_player_functional_board(player_stuff_list)
+            self.ui.draw_grid()
+            self.ui.draw_obstacles(self.map_list[self.selected_map])
             
-            
-            # Update screen
+            # Update snake UI
             for player_stuff in player_stuff_list:                    
                 player_stuff['player'].update_screen()     
             
@@ -275,20 +286,24 @@ class Menu:
     
     def add_human_player(self, player_list):
         player_list.append({
+            'name': f'Snake {self.snake_count}',
             'player': HumanPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0)),
             'is_human': True,
             'algo_cbb': None,
             'del': None
         })
+        self.snake_count += 1
     
     def add_ai_player(self, player_list):
         algorithm = Pathfinding((self.ui.rows, self.ui.cols))
         player_list.append({
+            'name': f'Snake{self.snake_count}',
             'player': AIPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0)),
             'is_human': False,
             'algo_cbb': ComboBox(100, 23, algorithm.path_algorithm_names, self.ui.small_text_font, self.ui.white, self.ui.gray, self.ui.white, self.ui.dark_blue),
             'del': None
         })
+        self.snake_count += 1
             
     def display_main_functional_board(self):
         """
@@ -320,7 +335,7 @@ class Menu:
             self.ui.display_button((self.functional_board_x, back_board_top_padding), (self.functional_board_width, 70), '', self.ui.text_font, self.ui.white, self.ui.dark_blue, radius=10)
             
             # Test information
-            self.ui.display_text(f'Score {player_stuff['player'].score}', self.functional_board_x + 13, back_board_top_padding + 10, self.ui.white, self.ui.text_font)
+            self.ui.display_text(f'{player_stuff['name']}-{player_stuff['player'].score}', self.functional_board_x + 13, back_board_top_padding + 10, self.ui.white, self.ui.text_font)
             
             # Player tag
             self.ui.display_button((self.functional_board_x + self.functional_board_width - 82, back_board_top_padding + 5), (30, 20), 'HM' if player_stuff['is_human'] else 'AI', self.ui.text_font_2, self.ui.gray, self.ui.light_blue, radius=10)

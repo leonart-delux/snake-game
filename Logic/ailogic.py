@@ -18,6 +18,7 @@ class AIPlayerGameLogic(BaseGameLogic):
         # Remove self-next head in temp_obstacles
         # If don't remove --> block all directions --> move ahead
         # self.remov_next_snake_head_in_temp_obstacles()
+        self.remove_food_in_temp_obstacles()
         # Union obstacles and all snake positions
         obstacles_and_snake = self.const_obstacles | self.temp_obstacles 
         start = (self.head_row, self.head_col)

@@ -38,6 +38,10 @@ class BaseGameLogic:
         snake_obstacles = set(tuple(block) for block in self.snake_list)
         snake_obstacles.add((self.food_row, self.food_col))
         return snake_obstacles
+
+    def remove_food_in_temp_obstacles(self):
+        if (self.food_row, self.food_col) in self.temp_obstacles:
+            self.temp_obstacles.remove((self.food_row, self.food_col))
         
     def get_next_snake_image_as_ostacles(self):
         """

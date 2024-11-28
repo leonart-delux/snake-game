@@ -156,10 +156,12 @@ class Menu:
     
     def play_creen_handle(self):
         self.current_screen = 'play'
-        map_list = [ set() ]
+        
+        # Load map
+        self.map_list = [ set() ]
         obstacles_maps = ObstacleMap()
-        map_list.extend( obstacles_maps.list_map)
-        selected_map = 1
+        self.map_list.extend( obstacles_maps.list_map)
+        self.selected_map = 0
             
         # All player along with its need attributes (for example: algorithm box, check for AI or player)
         player_stuff_list = []
@@ -175,21 +177,46 @@ class Menu:
             self.display_main_functional_board()
             self.display_player_functional_board(player_stuff_list)
             self.ui.draw_grid()
-            self.ui.draw_obstacles(map_list[selected_map])
+            self.ui.draw_obstacles(self.map_list[self.selected_map])
             
-            # Update temporary obstacles that not constant
-            temp_obstacles = set()
-            for player_stuff in player_stuff_list:
-                temp_obstacles.update(player_stuff['player'].get_snake_as_ostacles())
-            
-            # Update and process
-            for player_stuff in player_stuff_list:
-                if self.is_playing:
-                    # Update algorithm
+            # Process for game
+            if self.is_playing:
+                 # Update temporary obstacles that not constant
+                temp_obstacles = set()
+                # Achieve obstacles 1st
+                for player_stuff in player_stuff_list:
+                    # It should be next snakes positions as ostacles
+                    # If it's current --> may collision
+                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
+                
+                # Process all data first
+                for player_stuff in player_stuff_list:
+                    # Update temporary obstacles to process
+                    player_stuff['player'].temp_obstacles = temp_obstacles.copy()
+                    # Update algorithm to process
                     player_stuff['player'].algorithm = player_stuff['player'].pathfinding.path_algorithm[player_stuff['algo_cbb'].selected]
-                    # Process
-                    player_stuff['player'].one_frame_process(temp_obstacles)
-                player_stuff['player'].update_screen()
+
+                    player_stuff['player'].one_frame_data_process()
+                    
+                # Check for validation after process all data
+                # Retrieve snake obstacles first
+                temp_obstacles.clear()
+                for player_stuff in player_stuff_list:
+                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
+                
+                # Update other snakes position for each snake (not inlucde itself)
+                for player_stuff in player_stuff_list:
+                    player_stuff['player'].temp_obstacles = temp_obstacles - player_stuff['player'].get_snake_as_obstacles()
+                    
+                # Check valid
+                for player_stuff in player_stuff_list:
+                    player_stuff['player'].check_validation()
+            
+            
+            # Update screen
+            for player_stuff in player_stuff_list:                    
+                player_stuff['player'].update_screen()     
+                
                     
             # If user click on something
             # I prefer process event click on next frame
@@ -240,7 +267,7 @@ class Menu:
     def add_ai_player(self, player_list):
         self.algorithm = Pathfinding((self.ui.rows, self.ui.cols))
         player_list.append({
-            'player': AIPlayerGameLogic(set(), self.ui, (0, 0)),
+            'player': AIPlayerGameLogic(self.map_list[self.selected_map], self.ui, (0, 0)),
             'is_human': False,
             'algo_cbb': ComboBox(100, 23, self.algorithm.path_algorithm_names, self.ui.small_text_font, self.ui.white, self.ui.gray, self.ui.white, self.ui.dark_blue),
             'del': None

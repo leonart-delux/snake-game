@@ -2,7 +2,7 @@ import pygame
 
 class UI:
     def __init__(self):
-        self.width, self.height = 1200, 800
+        self.width, self.height = 1000, 600
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption('Snake Game')
         self.clock = pygame.time.Clock()
@@ -30,7 +30,7 @@ class UI:
         self.small_text_font = pygame.font.Font( r'assets/fonts/PressStart2P-Regular.ttf', 10)
         
         # Define cell size
-        self.snake_block = 1
+        self.snake_block = 10
         # Top and left padding for grid, grid position (top left) will start here
         self.grid_pos = self.height // 20
         # Grid height is 90% window height

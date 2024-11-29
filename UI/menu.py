@@ -218,6 +218,7 @@ class Menu:
                         # If man player is deleted
                         if player_stuff['is_human']:
                             self.is_human_picked = False
+                        temp_obstacles = temp_obstacles - player_stuff['player'].get_snake_as_obstacles()
                         self.delete_player(player_stuff_list, player_stuff)
                         
             is_clicked = False
@@ -314,6 +315,7 @@ class Menu:
                         # If human lose --> human can picked again
                         if player_stuff['is_human']:
                             self.is_human_picked = False
+                        temp_obstacles = temp_obstacles - player_stuff['player'].get_snake_as_obstacles()
                         self.delete_player(player_stuff_list, player_stuff)
             
             self.ui.clock.tick(self.speed_slider.get_value())

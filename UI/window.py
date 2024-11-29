@@ -76,7 +76,7 @@ class UI:
 
     def draw_food(self, food_position, color):
         food_row, food_col = food_position
-        self.display_button((self.grid_pos + food_col * self.snake_block, self.grid_pos + food_row * self.snake_block), (self.snake_block, self.snake_block), "", self.text_font, color, color, 1, 5, self.gray)
+        self.display_button((self.grid_pos + food_col * self.snake_block, self.grid_pos + food_row * self.snake_block), (self.snake_block, self.snake_block), "", self.text_font, color, color, 1, self.snake_block, self.gray)
 
     def clear_screen(self):
         self.screen.fill(self.black)

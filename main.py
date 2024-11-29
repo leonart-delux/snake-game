@@ -1,7 +1,7 @@
 import pygame
 from UI.window import *
 from Logic.gamelogic import *
-from menu import Menu
+from UI.menu import Menu
 
 def main():
     pygame.init()

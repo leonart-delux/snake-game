@@ -44,6 +44,9 @@ class Menu:
         if self.current_screen == 'map_view' or self.current_screen == 'map_cre':
             return self.map_screen_handle
         
+        if self.current_screen == 'play' or self.current_screen == 'sandbox':
+            return self.choose_mode_screen_handle
+        
         return self.start_screen_handle
   
     # ==========================
@@ -79,7 +82,7 @@ class Menu:
             
             if is_clicked and options[0].collidepoint(mousex, mousey):
                 # Start
-                return self.play_screen_handle
+                return self.choose_mode_screen_handle
                 
             if is_clicked and options[1].collidepoint(mousex, mousey):
                 # Map
@@ -176,6 +179,65 @@ class Menu:
             self.ui.update_screen()
 
     # ==========================
+    #       Mode screen
+    # ==========================
+
+    def choose_mode_screen_handle(self):
+        self.ui.clear_screen()
+        self.current_screen = 'choose_mode'
+
+        self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
+        self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green, self.ui.logo_font)        # Title display
+        
+        # Options for map
+        options = list()
+        option_names = ['Normal', 'Sandbox', 'Back'] 
+    
+        # For option display
+        option_left_padding = self.ui.width // 4 + 30
+        first_opt_top_padding = self.ui.height // (10/4)
+        is_clicked = False
+        
+        while True:
+            
+            hoving_option = -1
+
+            # Option event
+            mousex, mousey = pygame.mouse.get_pos()
+            
+            for i in range(len(options)):
+                if options[i] and options[i].collidepoint(mousex, mousey):
+                    hoving_option = i
+            
+            if is_clicked and options[0].collidepoint(mousex, mousey):
+                # Map view
+                return self.play_screen_handle
+                
+            if is_clicked and options[1].collidepoint(mousex, mousey):
+                # Map edit
+                return self.sandbox_screen_handle
+            
+            if is_clicked and options[2].collidepoint(mousex, mousey):
+                return self.go_back()
+            
+            is_clicked = False
+
+            # Options display
+            options.clear()
+            for i in range(len(option_names)):
+                color = self.ui.red if i == hoving_option else self.ui.white
+                options.append(self.ui.display_text(option_names[i], option_left_padding, first_opt_top_padding +  35 * i, color, self.ui.text_font))
+                
+            # Handle event
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.exit_game()   
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    is_clicked = True
+    
+            self.ui.update_screen()
+
+    # ==========================
     #       Play screen
     # ==========================
     
@@ -216,6 +278,7 @@ class Menu:
 
                 # Go back
                 if self.back_button_rect.collidepoint(mouse_x, mouse_y):
+                    self.is_playing = False
                     return self.go_back
                 
                 # Add player
@@ -227,11 +290,13 @@ class Menu:
                 
                 # Change map
                 if self.previous_map_button_rect.collidepoint(mouse_x, mouse_y):
-                    self.selected_map = (self.selected_map - 1) % len(self.map_obstacles_list)
-                    self.reset_game(player_stuff_list)
-                    self.ui.define_grid(self.map_grid_size_list[self.selected_map])
-                if self.next_map_button_rect.collidepoint(mouse_x, mouse_y):
-                    self.selected_map = (self.selected_map + 1) % len(self.map_obstacles_list)
+                    direction = -1
+                elif self.next_map_button_rect.collidepoint(mouse_x, mouse_y):
+                    direction = 1
+                else:
+                    direction = 0
+                if direction != 0:
+                    self.selected_map = (self.selected_map + direction) % len(self.map_obstacles_list)
                     self.reset_game(player_stuff_list)
                     self.ui.define_grid(self.map_grid_size_list[self.selected_map])
 
@@ -355,8 +420,6 @@ class Menu:
             self.delete_player(player_stuff_list, player)
     
     def delete_player(self, player_list, player):
-        if player['player'].snake_color:
-            self.ui.return_snake_color(player['player'].snake_color)
         if player in player_list:
             player_list.remove(player)
     
@@ -449,6 +512,179 @@ class Menu:
         self.add_ai_button_rect = self.ui.display_button((add_ai_button_left_padding, top_padding), (self.button_witdh // 2, 15), '+Bot', self.ui.small_text_font, self.ui.red, self.ui.light_red, radius=10)
 
     # ==========================
+    #       Sandbox screen
+    # ==========================
+    
+    def sandbox_screen_handle(self):
+        self.current_screen = 'sandbox'
+        
+        # Load map
+        obstacles_maps = ObstacleMap()
+        self.map_obstacles_list = obstacles_maps.list_map
+        self.map_grid_size_list = obstacles_maps.list_gridsize
+        self.selected_map = 0
+        self.ui.define_grid(self.map_grid_size_list[self.selected_map])
+            
+        # All player along with its need attributes (for example: algorithm box, check for AI or player)
+        player_stuff_list = []
+        # Algorithm to use
+        algorithm = Pathfinding((self.ui.rows, self.ui.cols))
+        algorithmCbb = ComboBox(self.functional_board_width, 30, algorithm.path_algorithm_names, self.ui.text_font, self.ui.white, self.ui.gray, self.ui.white, self.ui.dark_blue)
+        # Max snake
+        max_snake_slider = Slider(self.functional_board_x, self.ui.grid_pos + 120, self.functional_board_width, 1, 10, 3, self.ui.yellow, self.ui.gray)
+
+        
+        # Handle loop
+        is_clicked = False
+        self.is_playing = False
+        is_started = False
+        
+        # Hold temporary obstacles position on map
+        # It's snakes positions
+        # At first no snake --> empty
+        temp_obstacles = set()
+        
+        while True:
+            # If user click on something
+            # I prefer process event click on next frame
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            
+            if is_clicked:
+                # Pause/Go which handled by is_playing
+                if self.pause_button_rect.collidepoint(mouse_x, mouse_y):
+                    self.is_playing = not self.is_playing
+                    is_started = True
+                # Reset game
+                if self.reset_button_rect.collidepoint(mouse_x, mouse_y):
+                    self.reset_game(player_stuff_list)
+                    is_started = False
+                    
+                # Go back
+                if self.back_button_rect.collidepoint(mouse_x, mouse_y):
+                    return self.go_back
+                                
+                # Change map
+                if not is_started:
+                    if self.previous_map_button_rect.collidepoint(mouse_x, mouse_y):
+                        direction = -1
+                    elif self.next_map_button_rect.collidepoint(mouse_x, mouse_y):
+                        direction = 1
+                    else:
+                        direction = 0
+
+                    if direction != 0:
+                        self.selected_map = (self.selected_map + direction) % len(self.map_obstacles_list)
+                        self.reset_game(player_stuff_list)
+                        self.ui.define_grid(self.map_grid_size_list[self.selected_map])
+                        algorithm.numb_rows, algorithm.numb_cols = self.ui.rows, self.ui.cols
+
+            is_clicked = False
+                    
+            # Handle event
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.exit_game()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    is_clicked = True
+                    
+                self.speed_slider.handle_event(event)
+                if not is_started:
+                    max_snake_slider.handle_event(event)
+                    algorithmCbb.handle_event(event)
+                     
+            # Process for game
+            
+            # Started
+            # Add snake to max snake
+            if is_started:
+                while len(player_stuff_list) < max_snake_slider.get_value():
+                    self.add_ai_player(player_stuff_list)
+                    # Add selected algorithm
+                    player_stuff_list[len(player_stuff_list) - 1]['player'].algorithm = algorithm.path_algorithm[algorithmCbb.selected]
+            
+            # Initilization
+            for player_stuff in player_stuff_list:
+                # Havent initialized
+                if not player_stuff['player'].is_initialized:
+                    # Assign current map temporary obstacles
+                    player_stuff['player'].temp_obstacles = temp_obstacles
+                    # Initialize state including snake and food position
+                    player_stuff['player'].initialize()
+                    # Update this snake and food to temp obstacles list
+                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
+            
+            if self.is_playing:          
+                # Process all data first
+                for player_stuff in player_stuff_list:
+                    # Update temporary obstacles to process
+                    player_stuff['player'].temp_obstacles = temp_obstacles.copy()
+                    player_stuff['player'].one_frame_data_process()
+                    
+                # Update other snakes position for each snake (not inlucding itself) after process all data  
+                player_stuff = None
+                for player_stuff in player_stuff_list:
+                    # Create new map temporary obstacles
+                    # We need this set after last loop
+                    temp_obstacles.clear()
+                    # For each other snake
+                    for other_player_stuff in player_stuff_list:
+                        # Ignore current main snake
+                        if (player_stuff != other_player_stuff):
+                            # Add each other snake obstacles to temp_obstacles
+                            temp_obstacles.update(other_player_stuff['player'].get_snake_as_obstacles())
+                    # Add total
+                    player_stuff['player'].temp_obstacles = temp_obstacles.copy()
+                
+                # Temp obstacles in this session
+                if player_stuff:
+                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
+                        
+            # Display frame
+            self.ui.clear_screen()
+            self.display_main_functional_board()
+            self.ui.draw_grid()
+            self.ui.draw_obstacles(self.map_obstacles_list[self.selected_map])
+            
+            # Display point
+            if is_started:
+                for i, player_stuff in enumerate(player_stuff_list):
+                    back_board_top_padding = self.first_player_board_top_padding + 40 * i
+                    self.ui.display_text(f'{player_stuff['name']}-{player_stuff['player'].score}', self.functional_board_x + 13, back_board_top_padding + 10, player_stuff['player'].snake_color, self.ui.text_font)
+                    self.ui.display_text(f'P {player_stuff['player'].traveled_count}', self.functional_board_x + 210, back_board_top_padding + 13, self.ui.white, self.ui.small_text_font)
+            
+            # Handle before start
+            # If start, this game have to reset to this again
+            if not is_started:
+                # Show max snake adjust
+                self.ui.display_text('Max snake', self.functional_board_x + 5, self.ui.grid_pos + 90, self.ui.white, self.ui.text_font)
+                max_snake_slider.draw(self.ui.screen)
+                self.ui.display_text(str(max_snake_slider.get_value()), self.functional_board_x + 160, self.ui.grid_pos + 90, self.ui.white, self.ui.text_font)
+                max_snake_slider.draw(self.ui.screen)
+                
+                # Show algo to use
+                self.ui.display_text('Algorithm', self.functional_board_x + 5, self.ui.grid_pos + 140, self.ui.white, self.ui.text_font)
+                algorithmCbb.draw(self.ui.screen, self.functional_board_x, self.ui.grid_pos + 170)    
+            
+            # Update snake UI
+            for player_stuff in player_stuff_list:                    
+                player_stuff['player'].update_screen()  
+                
+            self.ui.refresh_screen()
+            
+            if self.is_playing:
+                # Check valid
+                for player_stuff in player_stuff_list:
+                    player_stuff['player'].check_validation()
+                    # Check lose
+                    if player_stuff['player'].game_over:
+                        # Remove snake in current screen temp obstacles
+                        temp_obstacles = temp_obstacles - player_stuff['player'].get_snake_as_obstacles()
+                        self.delete_player(player_stuff_list, player_stuff)
+            
+            self.ui.clock.tick(self.speed_slider.get_value())
+    
+    
+    # ==========================
     #       Map screen
     # ==========================
     
@@ -508,7 +744,6 @@ class Menu:
     
             self.ui.update_screen()
     
-
     def map_edit_screen_handle(self):
         self.current_screen = 'map_cre'  
          

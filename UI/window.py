@@ -22,7 +22,7 @@ class UI:
         self.dark_brown = (48, 36, 22)
         self.light_brown = (112, 73, 26)
         
-        self.snake_color = [ self.yellow, self.purple, self.green, self.blue, self.red ]
+        self.snake_color = [ self.yellow, self.purple, self.green, self.blue, self.red, self.light_brown, self.dark_brown, self.dark_green, self.dark_blue, self.light_blue ]
         
         # For null path exception
         self.default_img_path = r'assets/images/brick.pngf'
@@ -59,10 +59,9 @@ class UI:
         self.left_bot_border_img = self.load_and_scale_img(0.15, r'assets/images/border_bot_left.png')
     
     def get_snake_color(self):
-        return self.snake_color.pop(0)
-    
-    def return_snake_color(self, color):
+        color = self.snake_color.pop(0)
         self.snake_color.append(color)
+        return color
 
     def draw_snake(self, snake_list, color):
         for position in snake_list:

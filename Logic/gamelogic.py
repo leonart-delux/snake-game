@@ -106,8 +106,8 @@ class BaseGameLogic:
         self.temp_obstacles.remove((self.head_row + self.move_direction[0], self.head_col + self.move_direction[1]))
 
     def update_snake_position(self):
-        self.head_row += self.move_direction[0]
-        self.head_col += self.move_direction[1]
+        self.head_row = (self.head_row + self.move_direction[0]) % self.numb_rows
+        self.head_col = (self.head_col + self.move_direction[1]) % self.numb_cols
         
         self.check_eat_food()
 
@@ -120,11 +120,6 @@ class BaseGameLogic:
     
     def check_validation(self):      
         self.check_collisions()
-        self.check_boundaries()
-
-    def check_boundaries(self):
-        if (self.head_row < 0) or (self.head_row >= self.numb_rows) or (self.head_col < 0) or (self.head_col >= self.numb_cols):
-            self.game_over = True
                 
     def check_collisions(self):
         # Obstacles - Other snakes - Its body

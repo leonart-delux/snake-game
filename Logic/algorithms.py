@@ -27,9 +27,9 @@ class Pathfinding:
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]  
 
         for dr, dc in directions:
-            new_row, new_col = row + dr, col + dc
-            if (0 <= new_row < self.numb_rows) and (0 <= new_col < self.numb_cols):
-                neighbors.append((new_row, new_col))
+            new_row, new_col = (row + dr) % self.numb_rows, (col + dc) % self.numb_cols
+            neighbors.append((new_row, new_col))
+
 
         return neighbors
         
@@ -47,11 +47,7 @@ class Pathfinding:
                 return path[::-1][1:], len(came_from)
 
             for direction in self.directions:
-                neighbor = (current[0] + direction[0], current[1] + direction[1])
-                
-                # Neighbor accrosses boudary
-                if (neighbor[0] < 0) or (neighbor[0] >= self.numb_rows) or (neighbor[1] < 0) or (neighbor[1] >= self.numb_cols):
-                    continue
+                neighbor = ((current[0] + direction[0]) % self.numb_rows, (current[1] + direction[1]) % self.numb_cols)
                 
                 # Neighbor is visited or neighbor is obstacles_list (grid obstacles and snake included)
                 if neighbor in came_from or neighbor in obstacles_list:
@@ -77,10 +73,7 @@ class Pathfinding:
                 return path[::-1][1:], len(came_from)
 
             for direction in self.directions:
-                neighbor = (current[0] + direction[0], current[1] + direction[1])
-                
-                if (neighbor[0] < 0) or (neighbor[0] >= self.numb_rows) or (neighbor[1] < 0) or (neighbor[1] >= self.numb_cols):
-                    continue
+                neighbor = ((current[0] + direction[0]) % self.numb_rows, (current[1] + direction[1]) % self.numb_cols)
                 
                 if neighbor in came_from or neighbor in obstacles_list:
                     continue
@@ -112,12 +105,7 @@ class Pathfinding:
                 return path[::-1][1:], len(came_from)
 
             for direction in self.directions:
-                neighbor = (current[0] + direction[0], current[1] + direction[1])
-
-                # Check if the neighbor is out of bounds
-                if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
-                    neighbor[1] < 0 or neighbor[1] >= self.numb_cols):
-                    continue
+                neighbor = ((current[0] + direction[0]) % self.numb_rows, (current[1] + direction[1]) % self.numb_cols)
 
                 # Check if the neighbor is an obstacle or already visited
                 if neighbor in obstacles_list or neighbor in came_from:
@@ -157,11 +145,9 @@ class Pathfinding:
             visited.add(current)
 
             for direction in self.directions:
-                neighbor = (current[0] + direction[0], current[1] + direction[1])
+                neighbor = ((current[0] + direction[0]) % self.numb_rows, (current[1] + direction[1]) % self.numb_cols)
                 
-                if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
-                    neighbor[1] < 0 or neighbor[1] >= self.numb_cols or
-                    neighbor in obstacles_list or neighbor in visited):
+                if neighbor in obstacles_list or neighbor in visited:
                     continue
 
                 if neighbor not in came_from:
@@ -178,11 +164,7 @@ class Pathfinding:
             neighbors = []
             
             for direction in self.directions:
-                neighbor = (current[0] + direction[0], current[1] + direction[1])
-
-                if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
-                    neighbor[1] < 0 or neighbor[1] >= self.numb_cols):
-                    continue
+                neighbor = ((current[0] + direction[0]) % self.numb_rows, (current[1] + direction[1]) % self.numb_cols)
 
                 if neighbor in obstacles_list or neighbor in came_from:
                     continue
@@ -224,11 +206,7 @@ class Pathfinding:
                     return path[::-1][1:], len(came_from)
 
                 for direction in self.directions:
-                    neighbor = (current[0] + direction[0], current[1] + direction[1])
-
-                    if (neighbor[0] < 0 or neighbor[0] >= self.numb_rows or
-                        neighbor[1] < 0 or neighbor[1] >= self.numb_cols):
-                        continue
+                    neighbor = ((current[0] + direction[0]) % self.numb_rows, (current[1] + direction[1]) % self.numb_cols)
                     
                     if neighbor in obstacles_list or neighbor in came_from:
                         continue

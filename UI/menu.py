@@ -2,7 +2,7 @@ import pygame
 from Logic.gamelogic import *
 from Logic.singlelogic import SinglePlayerGameLogic as HumanPlayerGameLogic
 from Logic.ailogic import AIPlayerGameLogic
-from obstacles import ObstacleMap
+from UI.obstacles import ObstacleMap
 from UI.window import * 
 
 class Menu:

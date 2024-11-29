@@ -106,6 +106,13 @@ class UI:
             start_point_x = self.grid_pos + col * self.snake_block
             pygame.draw.line(self.screen, grid_color, (start_point_x, self.grid_pos), (start_point_x, self.grid_pos + grid_height))
 
+    def get_cell_pos_in_grid(self, x, y):
+        x_in_grid = x - self.grid_pos
+        y_in_grid = y - self.grid_pos
+        row = y_in_grid // self.snake_block
+        col = x_in_grid // self.snake_block
+        return row, col
+
     def display_text(self, text, x, y, color, font):
         text_surface = font.render(text, True, color)
         return self.screen.blit(text_surface, (x, y))

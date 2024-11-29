@@ -220,9 +220,9 @@ class Menu:
                             self.is_human_picked = False
                         temp_obstacles = temp_obstacles - player_stuff['player'].get_snake_as_obstacles()
                         self.delete_player(player_stuff_list, player_stuff)
-                        
+            
             is_clicked = False
-
+                    
             # Handle event
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -233,11 +233,13 @@ class Menu:
                 self.speed_slider.handle_event(event)
                 for player_stuff in player_stuff_list:
                     # Handle for algorithm choice of AI
-                    if player_stuff and not player_stuff['is_human']:
+                    if player_stuff and not player_stuff['is_human'] and is_clicked:
                         player_stuff['algo_cbb'].handle_event(event)
+                        is_clicked = True
                     # Human play handle key stroke
                     elif player_stuff['is_human']:
                         player_stuff['player'].handle_events(event)
+            
             
             # Only accept one action in 1 frame
             # In previous step if a key is stroke for human player and successfully change direction
@@ -439,6 +441,8 @@ class Menu:
 
         option_top_padding = self.ui.grid_pos + self.ui.rows * self.ui.snake_block - 30
         is_clicked = False
+        draw_mode = True    # true -> draw ; false -> erase
+        is_dragging = False     # draw and erase mode
   
         while True:
             self.ui.clear_screen()
@@ -462,7 +466,20 @@ class Menu:
                 map_storage.add_map(new_obstacles, new_size)
             
             if is_clicked and options[2].collidepoint(mousex, mousey):
-                return self.go_back()      
+                return self.go_back()
+            
+            # Draw, Erase
+            if is_dragging:
+                # Get grid row and col based on mouse position (may wrong, check later)
+                row, col = self.ui.get_cell_pos_in_grid(mousex, mousey)
+                # Check if mouse is in grid or not
+                if 0 <= row < self.ui.rows and 0 <= col < self.ui.cols:
+                    if draw_mode:
+                        new_obstacles.add((row, col))
+                        
+                    # Erase
+                    elif (row, col) in new_obstacles:
+                        new_obstacles.remove((row, col)) 
             
             is_clicked = False
 
@@ -475,7 +492,7 @@ class Menu:
             grid_slider.draw(self.ui.screen)
             
             # Instructions
-            self.ui.display_text('Mode: Draw', self.functional_board_x + 15, self.ui.grid_pos + 160, self.ui.white, self.ui.text_font)
+            self.ui.display_text('Mode: Draw' if draw_mode else 'Mode: Erase', self.functional_board_x + 15, self.ui.grid_pos + 160, self.ui.white, self.ui.text_font)
             self.ui.display_text('E to Erase..', self.functional_board_x + 25, self.ui.grid_pos + 190, self.ui.yellow, self.ui.funny_font)
             self.ui.display_text('D to Draw!!', self.functional_board_x + 25, self.ui.grid_pos + 260, self.ui.green, self.ui.funny_font)
 
@@ -495,10 +512,24 @@ class Menu:
                     self.exit_game()
                     
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    is_clicked = True                
+                    is_clicked = True
+                    is_dragging = True
+                
+                # Unhold left click
+                elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                    is_dragging = False
+                    
+                elif event.type ==pygame.KEYDOWN:
+                    if event.key == pygame.K_d:
+                        draw_mode = True
+                    elif event.key == pygame.K_e:
+                        draw_mode = False                
                     
                 grid_slider.handle_event(event)
             
             self.ui.update_screen()
             self.ui.clock.tick(30)
+    
+    
+        
                 

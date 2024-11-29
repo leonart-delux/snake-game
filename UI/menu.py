@@ -23,10 +23,6 @@ class Menu:
         self.board_padding = 15
         
         self.speed_slider = Slider(self.functional_board_x + self.button_witdh + self.button_padding, self.ui.grid_pos + 50, self.button_witdh * 1.5, 1, 100, 30, self.ui.dark_green, self.ui.gray)
-        
-        # Options for each screen
-        option_names = [] 
-        option_functions = []
 
     def exit_game(self):
         pygame.quit()
@@ -42,42 +38,76 @@ class Menu:
             if not next_screen:
                 next_screen = self.start_screen_handle
     
+        # ==========================
+
+    def go_back(self):
+        if self.current_screen == 'map_view' or self.current_screen == 'map_cre':
+            return self.map_screen_handle
+        
+        return self.start_screen_handle
+  
     # ==========================
     #       Start screen
     # ==========================
     
     def start_screen_handle(self):
         self.ui.clear_screen()
-        self.current_screen = 'main'
-        
-        # Display start_screen unchanged things 
+        self.current_screen = 'start'
+
         self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
         self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green, self.ui.logo_font)        # Title display
         
-        # Options for start_screen
-        self.option_names = ['Play', 'Map edit', 'Credit', 'Quit'] 
-        self.option_functions = [self.play_screen_handle, self.map_edit_screen_handle, self.credit_screen_handle, self.exit_game]
+        # Options for start
+        options = list()
+        option_names = ['Play', 'Map', 'Credit', 'Quit'] 
         
-        # Menu and event handler
-        options = self.update_start_screen()
-        return self.handle_events(self.update_start_screen, options)
-    
-    def update_start_screen(self, selected_option=0):
         # Options storage
-        options = []
         option_left_padding = self.ui.width // 4 + 30
         first_opt_top_padding = self.ui.height // (10/4)
+        is_clicked = False
+        
+        while True:
+            
+            hoving_option = -1
 
-        # Options display
-        for i in range(len(self.option_names)):
-            color = self.ui.red if i == selected_option else self.ui.white
-            options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  40 * i, color, self.ui.text_font),
-                'option_func': self.option_functions[i]
-                })
+            # Option event
+            mousex, mousey = pygame.mouse.get_pos()
+            
+            for i in range(len(options)):
+                if options[i] and options[i].collidepoint(mousex, mousey):
+                    hoving_option = i
+            
+            if is_clicked and options[0].collidepoint(mousex, mousey):
+                # Start
+                return self.play_screen_handle
+                
+            if is_clicked and options[1].collidepoint(mousex, mousey):
+                # Map
+                return self.map_screen_handle
+            
+            if is_clicked and options[2].collidepoint(mousex, mousey):
+                # Credit 
+                return self.credit_screen_handle
+            
+            if is_clicked and options[3].collidepoint(mousex, mousey):
+                return self.exit_game()
+            
+            is_clicked = False
 
-        self.ui.update_screen()
-        return options
+            # Options display
+            options.clear()
+            for i in range(len(option_names)):
+                color = self.ui.red if i == hoving_option else self.ui.white
+                options.append(self.ui.display_text(option_names[i], option_left_padding, first_opt_top_padding +  35 * i, color, self.ui.text_font))
+                
+            # Handle event
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.exit_game()   
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    is_clicked = True
+    
+            self.ui.update_screen()
     
     # ==========================
     #       Credit screen
@@ -86,71 +116,65 @@ class Menu:
     def credit_screen_handle(self):
         self.ui.clear_screen()
         self.current_screen = 'credit'
-        # Display credit_screen unchanged things 
+
         self.ui.display_text_center("OUR MEMBER", self.ui.height // 10, self.ui.white, self.ui.subtitle_font)        # Title display
-                
-        # Options for credit
-        self.option_names = ['22110031 Bien Xuan Huy', '22110032 Le Gia Huy', '22110037 Nguyen Tien Huy', '22110085 Nguyen Truong', 'Return'] 
-        self.option_functions = [None, None, None, None, self.go_back]
         
-        # Menu and event handler
-        options = self.update_credit_screen()
-        return self.handle_events(self.update_credit_screen, options)
-    
-    def update_credit_screen(self, selected_option=0):
-        # Options storage
-        options = []
+        # Options for credit
+        options = list()
+        option_names = ['22110031 Bien Xuan Huy', '22110032 Le Gia Huy', '22110037 Nguyen Tien Huy', '22110085 Nguyen Truong', 'Return'] 
+        
+        # For options display
         option_left_padding = self.ui.width // 6
         first_opt_top_padding = self.ui.height // 3
-        image_paths = [ r'assets/images/mem_xhuy.png', r'assets/images/mem_ghuy.png', r'assets/images/mem_thuy.png', r'assets/images/mem_ntruong.png', r'assets/images/empty_border.png' ]
-
-        # Options display
-        for i in range(len(self.option_names)):
-            color = self.ui.light_blue if i == selected_option else self.ui.white
-            options.append({
-                'option_rect': self.ui.display_text(self.option_names[i], option_left_padding, first_opt_top_padding +  35 * i, color, self.ui.text_font),
-                'option_func': self.option_functions[i]
-                })
-        
-        # Member images
         img_x = self.ui.width // (5/3)
         img_y = self.ui.height // 3.5
-        # Fill old image (if appeared)
-        self.ui.screen.fill((0, 0, 0), (img_x, img_y, 200, 300))
-        self.ui.display_image(img_x, img_y, 0.7, image_paths[selected_option])   
-
-        self.ui.update_screen()
-        return options
-    
-    # ==========================
-    #       Handle events
-    # ==========================
-    
-    # Handle coming up events of specific screen
-    def handle_events(self, update_screen, options, selected_option=0):
+        
+        image_paths = [ r'assets/images/mem_xhuy.png', r'assets/images/mem_ghuy.png', r'assets/images/mem_thuy.png', r'assets/images/mem_ntruong.png', r'assets/images/empty_border.png' ]
+        selected_option = 0
+        is_clicked = False
+        
         while True:
+            
+            hoving_option = -1
+
+            # Option event
+            mousex, mousey = pygame.mouse.get_pos()
+            
+            for i in range(len(options)):
+                if options[i] and options[i].collidepoint(mousex, mousey):
+                    hoving_option = i
+                if is_clicked and options[i].collidepoint(mousex, mousey):
+                    selected_option = i
+            
+            if is_clicked and options[4].collidepoint(mousex, mousey):
+                return self.go_back()
+            
+            is_clicked = False
+
+            # Options display
+            options.clear()
+            for i in range(len(option_names)):
+                if i == hoving_option:
+                    color = self.ui.red
+                elif i == selected_option:
+                    color = self.ui.blue
+                else:
+                    color = self.ui.white
+                options.append(self.ui.display_text(option_names[i], option_left_padding, first_opt_top_padding +  35 * i, color, self.ui.text_font))
+            
+            # Fill old image (if appeared)
+            self.ui.screen.fill((0, 0, 0), (img_x, img_y, 200, 300))
+            self.ui.display_image(img_x, img_y, 0.7, image_paths[selected_option])
+            
+            # Handle event
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.exit_game()
-
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_DOWN:
-                        selected_option = (selected_option + 1) % len(options)
-                    elif event.key == pygame.K_UP:
-                        selected_option = (selected_option - 1) % len(options)
-                    elif event.key == pygame.K_RETURN and options[selected_option]['option_func']:
-                        # if enter key is stroked ---> return called screen (its function) if there is
-                        return options[selected_option]['option_func']
-            
-            update_screen(selected_option)
-
-    # ==========================
-    #   Return previous screen
-    # ==========================
+                    self.exit_game()   
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    is_clicked = True
     
-    def go_back(self):
-        return self.start_screen_handle
-    
+            self.ui.update_screen()
+
     # ==========================
     #       Play screen
     # ==========================
@@ -424,8 +448,69 @@ class Menu:
             add_ai_button_left_padding -= (self.button_witdh // 4 + 10)
         self.add_ai_button_rect = self.ui.display_button((add_ai_button_left_padding, top_padding), (self.button_witdh // 2, 15), '+Bot', self.ui.small_text_font, self.ui.red, self.ui.light_red, radius=10)
 
+    # ==========================
+    #       Map screen
+    # ==========================
+    
+    def map_screen_handle(self):
+        self.ui.clear_screen()
+        self.current_screen = 'map'
+
+        self.ui.display_image(self.ui.width // (10/4.5), self.ui.height // 3.5, 0.6, r"assets/images/main_thumb.png")   # Thumbnail display
+        self.ui.display_text_center("SNAKE GAME", self.ui.height // 4, self.ui.green, self.ui.logo_font)        # Title display
+        
+        # Options for map
+        options = list()
+        option_names = ['Map view', 'Create map', 'Back'] 
+    
+        # For option display
+        option_left_padding = self.ui.width // 4 + 30
+        first_opt_top_padding = self.ui.height // (10/4)
+        is_clicked = False
+        
+        while True:
+            
+            hoving_option = -1
+
+            # Option event
+            mousex, mousey = pygame.mouse.get_pos()
+            
+            for i in range(len(options)):
+                if options[i] and options[i].collidepoint(mousex, mousey):
+                    hoving_option = i
+            
+            if is_clicked and options[0].collidepoint(mousex, mousey):
+                # Map view
+                return self.map_view_screen_handle
+                
+            if is_clicked and options[1].collidepoint(mousex, mousey):
+                # Map edit
+                return self.map_edit_screen_handle
+            
+            if is_clicked and options[2].collidepoint(mousex, mousey):
+                return self.go_back()
+            
+            is_clicked = False
+            
+
+            # Options display
+            options.clear()
+            for i in range(len(option_names)):
+                color = self.ui.red if i == hoving_option else self.ui.white
+                options.append(self.ui.display_text(option_names[i], option_left_padding, first_opt_top_padding +  35 * i, color, self.ui.text_font))
+                
+            # Handle event
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.exit_game()   
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    is_clicked = True
+    
+            self.ui.update_screen()
+    
+
     def map_edit_screen_handle(self):
-        self.current_screen = 'mapedit'  
+        self.current_screen = 'map_cre'  
          
         # Options for map_editor_screen
         options = list()
@@ -530,6 +615,83 @@ class Menu:
             self.ui.update_screen()
             self.ui.clock.tick(30)
     
-    
+    def map_view_screen_handle(self):
+        self.current_screen = 'map_view'  
+         
+        # Options for map_view_screen
+        options = list()
+        option_names = ['Delete', 'Back'] 
+
+        # Display old map
+        map_storage = ObstacleMap()
+        selected_map = 0
+        previous_map_button_rect = next_map_button_rect = None
+        top_button_padding = self.ui.grid_pos + self.ui.rows * self.ui.snake_block - 30
+
+        # For option display
+        option_top_padding = self.ui.grid_pos + self.ui.rows * self.ui.snake_block - 30
+        is_clicked = False
+  
+        while True:
+            self.ui.clear_screen()
+            
+            hoving_option = -1
+
+            # Option event
+            mousex, mousey = pygame.mouse.get_pos()
+            
+            for i in range(len(options)):
+                if options[i] and options[i].collidepoint(mousex, mousey):
+                    hoving_option = i
+            
+            if is_clicked and options[0].collidepoint(mousex, mousey) and len(map_storage.list_map) > 1:
+                # Clear
+                map_storage.del_map(selected_map)
+                selected_map = 0
+                
+            if is_clicked and options[1].collidepoint(mousex, mousey):
+                # Back
+                return self.go_back()
+
+            if is_clicked and previous_map_button_rect.collidepoint(mousex, mousey):
+                selected_map = (selected_map - 1) % len(map_storage.list_map)
+            
+            if is_clicked and next_map_button_rect.collidepoint(mousex, mousey):
+                selected_map = (selected_map + 1) % len(map_storage.list_map)
+            
+            is_clicked = False
+
+            # Text display
+            self.ui.display_button((self.functional_board_x, self.ui.grid_pos), (self.functional_board_width, 50), 'Map Editor', self.ui.subtitle_font, self.ui.dark_brown, self.ui.light_brown, 2, 20, self.ui.dark_brown)
+            
+            # Instructions
+            # self.ui.display_text('Mode: Draw' if draw_mode else 'Mode: Erase', self.functional_board_x + 15, self.ui.grid_pos + 160, self.ui.white, self.ui.text_font)
+            # self.ui.display_text('E to Erase..', self.functional_board_x + 25, self.ui.grid_pos + 190, self.ui.yellow, self.ui.funny_font)
+            # self.ui.display_text('D to Draw!!', self.functional_board_x + 25, self.ui.grid_pos + 260, self.ui.green, self.ui.funny_font)
+
+            # Option display
+            options.clear()
+            for i in range(len(option_names)):
+                color = self.ui.blue if i != hoving_option else self.ui.red
+                options.append(self.ui.display_text(option_names[i], self.functional_board_x + 110 * i, option_top_padding, color, self.ui.subtitle_font_2))
+            
+             # Change map
+            previous_map_button_rect = self.ui.display_image(self.functional_board_x - 40, self.ui.grid_pos, (30/128), r"assets/images/up-arrow.png")
+            next_map_button_rect = self.ui.display_image(self.functional_board_x - 40, top_button_padding, (30/128), r"assets/images/down-arrow.png")
+
+            # Display
+            self.ui.define_grid(map_storage.list_gridsize[selected_map])
+            self.ui.draw_grid()
+            self.ui.draw_obstacles(map_storage.list_map[selected_map])
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.exit_game()
+                    
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    is_clicked = True                           
+            
+            self.ui.update_screen()
+            self.ui.clock.tick(30)
         
                 

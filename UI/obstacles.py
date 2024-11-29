@@ -9,6 +9,10 @@ class ObstacleMap:
         self.list_map.append(map_obstalces)
         self.list_gridsize.append(grid_size)
     
+    def del_map(self, pos):
+        self.list_map.pop(pos)
+        self.list_gridsize.pop(pos)
+    
     def load_map_list(self):
         """
         Return list of set, each set contains position of obstacles in tuple.

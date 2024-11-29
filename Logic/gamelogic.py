@@ -10,6 +10,7 @@ class BaseGameLogic:
         
         # all valid positions map, haven't include snake positions because it's dynamic
         self.valid_positions = {(row, col) for row in range(map_size[0]) for col in range(map_size[1])} - obstacles
+        self.all_directions = {(-1, 0), (1, 0), (0, -1), (0, 1)}
         self.snake_speed = 20
         self.is_initialized = False
 
@@ -46,64 +47,50 @@ class BaseGameLogic:
     def get_next_snake_image_as_ostacles(self):
         """
         Return images of snake in next process move in all available directions
-        May include obstacles accross boundaries, just don't care
-        This function to prevent other snakes hit this snake
         """
         next_snake_images = set(tuple(block) for block in self.snake_list)
-        next_heads = set()
-        for dir_x, dir_y in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            next_head_row = self.head_row + dir_x
-            next_head_col = self.head_col + dir_y
-            next_heads.add((next_head_row, next_head_col))
-            
-        next_snake_images.update(next_heads)
+        next_snake_images.add((self.food_row, self.food_col))
         
+        for dir in self.all_directions:
+            # May include body, but add() wont add, dont mind
+            next_head = (self.head_row + dir[0]) % self.numb_rows, (self.head_col + dir[1]) % self.numb_cols
+            next_snake_images.add(next_head)
+            
         # Check for food
-        # If length == 1
-        # If next move can eat food, then tail is longer, just return the whole current snake and next heads
-        if self.length_of_snake == 1 or abs(self.head_row - self.food_row) + abs(self.head_col - self.food_col) == 1:
+        # If length == 1 then current position acts like 1 of the next move, just return
+        # If next move can eat food, then tail is longer, just return with the whole current body
+        if self.length_of_snake == 1 or (min(abs(self.head_row - self.food_row), self.numb_rows - abs(self.head_row - self.food_row)) + min(abs(self.head_col - self.food_col), self.numb_cols - abs(self.head_col - self.food_col)) == 1):
             return next_snake_images
         
-        # If no food, remove tail
-        next_snake_images.remove(self.snake_list[0])
+        # No special cases, remove tail
+        next_snake_images.discard(tuple(self.snake_list[0]))
         return next_snake_images
 
     def remove_food_in_temp_obstacles(self):
         if (self.food_row, self.food_col) in self.temp_obstacles:
             self.temp_obstacles.remove((self.food_row, self.food_col))
 
-    def remov_next_snake_head_in_temp_obstacles(self):
+    def remove_next_snake_head_in_temp_obstacles(self):
         """
         Remove NEXT snake head position in temporary obstacles list
         """
-        if (self.length_of_snake == 1):
-            self.temp_obstacles.clear()
-            return
+        backward_direction = (-self.move_direction[0], -self.move_direction[1])
         
-        # In case moving left or right
-        if (self.move_direction[0] == 0):
-            # Remove above and below position of snake head in temp_obstacles
-            above_pos = (self.head_row + 1, self.head_col)
-            if above_pos in self.temp_obstacles and above_pos not in self.snake_list:
-                self.temp_obstacles.remove(above_pos)
+        # For all but backward direction of current moving direction
+        for dir in self.all_directions - {backward_direction}:
+            next_head = (
+                (self.head_row + dir[0]) % self.numb_rows, 
+                (self.head_col + dir[1]) % self.numb_cols
+                )
+            self.temp_obstacles.discard(next_head)
                 
-            below_pos = (self.head_row - 1, self.head_col)
-            if below_pos in self.temp_obstacles and below_pos not in self.snake_list:
-                self.temp_obstacles.remove(below_pos)
-                
-        # In case moving up or down
-        else:
-            # Remove left and right position of snake head in temp_obstacles
-            left_pos = (self.head_row, self.head_col - 1)
-            if left_pos in self.temp_obstacles and left_pos not in self.snake_list:
-                self.temp_obstacles.remove((self.head_row, self.head_col - 1))
-            
-            right_pos = (self.head_row, self.head_col + 1)
-            if right_pos in self.temp_obstacles and right_pos not in self.snake_list:
-                self.temp_obstacles.remove(right_pos)
-                
-        # Lastly, remove next head position if moving in current direction
-        self.temp_obstacles.remove((self.head_row + self.move_direction[0], self.head_col + self.move_direction[1]))
+        # If snake length is 1, remove backward direction too
+        if self.length_of_snake == 1:
+            next_head = (
+                (self.head_row + backward_direction[0]) % self.numb_rows,
+                (self.head_col + backward_direction[1]) % self.numb_cols
+                )
+            self.temp_obstacles.discard(next_head)
 
     def update_snake_position(self):
         self.head_row = (self.head_row + self.move_direction[0]) % self.numb_rows

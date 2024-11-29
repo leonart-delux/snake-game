@@ -16,9 +16,8 @@ class AIPlayerGameLogic(BaseGameLogic):
         """
         temp_obstacles is temporary obstacles (snake or other ones)
         """
-        # Remove self-next head in temp_obstacles
-        # If don't remove --> block all directions --> move ahead
-        # self.remov_next_snake_head_in_temp_obstacles()
+        # Remove food in temp obstacles
+        # If don't remove --> consider food as obstacles
         self.remove_food_in_temp_obstacles()
         # Union obstacles and all snake positions
         obstacles_and_snake = self.const_obstacles | self.temp_obstacles 

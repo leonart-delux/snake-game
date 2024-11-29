@@ -606,25 +606,33 @@ class Menu:
             for player_stuff in player_stuff_list:
                 # Havent initialized
                 if not player_stuff['player'].is_initialized:
-                    # Assign current map temporary obstacles
-                    player_stuff['player'].temp_obstacles = temp_obstacles
                     # Initialize state including snake and food position
                     player_stuff['player'].initialize()
-                    # Update this snake and food to temp obstacles list
-                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
             
             if self.is_playing:          
+                # Update other NEXT snakes position for each snake (not inlucding itself) before process all data  
+                for player_stuff in player_stuff_list:
+                    # Create new map temporary obstacles
+                    temp_obstacles.clear()
+                    # For each other snake
+                    for other_player_stuff in player_stuff_list:
+                        # Ignore current main snake
+                        if (player_stuff != other_player_stuff):
+                            # Add each other snake obstacles to temp_obstacles
+                            temp_obstacles.update(other_player_stuff['player'].get_next_snake_image_as_ostacles())
+                    # Add self position
+                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
+                    # Add total
+                    player_stuff['player'].temp_obstacles = temp_obstacles.copy()
+                
                 # Process all data first
                 for player_stuff in player_stuff_list:
-                    # Update temporary obstacles to process
-                    player_stuff['player'].temp_obstacles = temp_obstacles.copy()
                     player_stuff['player'].one_frame_data_process()
                     
                 # Update other snakes position for each snake (not inlucding itself) after process all data  
                 player_stuff = None
                 for player_stuff in player_stuff_list:
                     # Create new map temporary obstacles
-                    # We need this set after last loop
                     temp_obstacles.clear()
                     # For each other snake
                     for other_player_stuff in player_stuff_list:
@@ -634,10 +642,6 @@ class Menu:
                             temp_obstacles.update(other_player_stuff['player'].get_snake_as_obstacles())
                     # Add total
                     player_stuff['player'].temp_obstacles = temp_obstacles.copy()
-                
-                # Temp obstacles in this session
-                if player_stuff:
-                    temp_obstacles.update(player_stuff['player'].get_snake_as_obstacles())
                         
             # Display frame
             self.ui.clear_screen()
@@ -649,8 +653,8 @@ class Menu:
             if is_started:
                 for i, player_stuff in enumerate(player_stuff_list):
                     back_board_top_padding = self.first_player_board_top_padding + 40 * i
-                    self.ui.display_text(f'{player_stuff['name']}-{player_stuff['player'].score}', self.functional_board_x + 13, back_board_top_padding + 10, player_stuff['player'].snake_color, self.ui.text_font)
-                    self.ui.display_text(f'P {player_stuff['player'].traveled_count}', self.functional_board_x + 210, back_board_top_padding + 13, self.ui.white, self.ui.small_text_font)
+                    self.ui.display_text(f'{player_stuff['name']}-{player_stuff['player'].score}', self.functional_board_x, back_board_top_padding + 10, player_stuff['player'].snake_color, self.ui.text_font)
+                    self.ui.display_text(f'P {player_stuff['player'].traveled_count}', self.functional_board_x + 200, back_board_top_padding + 13, self.ui.white, self.ui.small_text_font)
             
             # Handle before start
             # If start, this game have to reset to this again

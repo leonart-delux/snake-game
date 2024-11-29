@@ -84,7 +84,10 @@ class Pathfinding:
         return [], len(came_from)
     
     def heuristic(self, a, b):
-        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+        dx = min(abs(a[0] - b[0]), self.numb_rows - abs(a[0] - b[0]))
+        dy = min(abs(a[1] - b[1]), self.numb_cols - abs(a[1] - b[1]))
+        return dx + dy
+
     
     def a_star(self, start, goal, obstacles_list):
         open_set = [] # Priority queue

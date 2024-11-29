@@ -662,18 +662,13 @@ class Menu:
             is_clicked = False
 
             # Text display
-            self.ui.display_button((self.functional_board_x, self.ui.grid_pos), (self.functional_board_width, 50), 'Map Editor', self.ui.subtitle_font, self.ui.dark_brown, self.ui.light_brown, 2, 20, self.ui.dark_brown)
-            
-            # Instructions
-            # self.ui.display_text('Mode: Draw' if draw_mode else 'Mode: Erase', self.functional_board_x + 15, self.ui.grid_pos + 160, self.ui.white, self.ui.text_font)
-            # self.ui.display_text('E to Erase..', self.functional_board_x + 25, self.ui.grid_pos + 190, self.ui.yellow, self.ui.funny_font)
-            # self.ui.display_text('D to Draw!!', self.functional_board_x + 25, self.ui.grid_pos + 260, self.ui.green, self.ui.funny_font)
+            self.ui.display_button((self.functional_board_x, self.ui.grid_pos), (self.functional_board_width, 50), 'MAP VIEW', self.ui.funny_font, self.ui.white, self.ui.red, radius = 20)
 
             # Option display
             options.clear()
             for i in range(len(option_names)):
                 color = self.ui.blue if i != hoving_option else self.ui.red
-                options.append(self.ui.display_text(option_names[i], self.functional_board_x + 110 * i, option_top_padding, color, self.ui.subtitle_font_2))
+                options.append(self.ui.display_text(option_names[i], self.functional_board_x + 120 + 110 * i, option_top_padding, color, self.ui.subtitle_font_2))
             
              # Change map
             previous_map_button_rect = self.ui.display_image(self.functional_board_x - 40, self.ui.grid_pos, (30/128), r"assets/images/up-arrow.png")

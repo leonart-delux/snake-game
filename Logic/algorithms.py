@@ -84,7 +84,9 @@ class Pathfinding:
         return [], len(came_from)
     
     def heuristic(self, a, b):
-        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+        non_tele_row = abs(a[0] - b[0])
+        non_tele_col = abs(a[1] - b[1])
+        return min(non_tele_row, self.numb_rows - non_tele_row) + min(non_tele_col, self.numb_cols - non_tele_col)
     
     def a_star(self, start, goal, obstacles_list):
         open_set = [] # Priority queue
@@ -114,7 +116,12 @@ class Pathfinding:
                 # Actual cost from start to neighbor, use to check if the path is shorter
                 tentative_g_score = g_score[current] + 1
 
-                if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
+                if neighbor not in g_score:
+                    g_score[neighbor] = tentative_g_score
+                    f_score = tentative_g_score + self.heuristic(neighbor, goal)
+                    heapq.heappush(open_set, (f_score, neighbor))
+                    came_from[neighbor] = current
+                elif tentative_g_score < g_score[neighbor]:
                     g_score[neighbor] = tentative_g_score
                     f_score = tentative_g_score + self.heuristic(neighbor, goal)
                     heapq.heappush(open_set, (f_score, neighbor))

@@ -25,7 +25,7 @@ class SinglePlayerGameLogic(BaseGameLogic):
                 self.move_direction = [1, 0]
                 self.is_changed_direction = True                    
     
-    def one_frame_data_process(self):
+    def one_frame_data_process(self, is_alone):
         self.update_snake_position()
                 
     def update_screen(self):

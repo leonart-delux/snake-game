@@ -22,7 +22,7 @@ class UI:
         self.dark_brown = (48, 36, 22)
         self.light_brown = (112, 73, 26)
         
-        self.snake_color = [ self.yellow, self.purple, self.green, self.blue, self.red, self.light_brown, self.dark_brown, self.dark_green, self.dark_blue, self.light_blue ]
+        self.snake_color = [ self.blue, self.green, self.light_brown, self.purple, self.red ]
         
         # For null path exception
         self.default_img_path = r'assets/images/brick.pngf'
@@ -43,6 +43,7 @@ class UI:
         
         # Preload images
         self.load_border()
+        self.load_snake()
     
     def define_grid(self, grid_size):
         # Define cell size
@@ -58,15 +59,95 @@ class UI:
         self.right_bot_border_img = self.load_and_scale_img(0.15, r'assets/images/border_bot_right.png')
         self.left_bot_border_img = self.load_and_scale_img(0.15, r'assets/images/border_bot_left.png')
     
+    def load_snake(self):
+        snake_images_path = [r'assets/images/snake-blue/', r'assets/images/snake-green/', r'assets/images/snake-orange/', r'assets/images/snake-purple/', r'assets/images/snake-red/']
+        colors = [ self.blue, self.green, self.light_brown, self.purple, self.red ]
+        self.snake_images = dict()
+        
+        for color, path in zip(colors, snake_images_path):
+            snake_image = SnakeImage()
+            
+            snake_image.head_up = pygame.image.load(path + 'head_up.png')
+            snake_image.head_down = pygame.image.load(path + 'head_down.png')
+            snake_image.head_left = pygame.image.load(path + 'head_left.png')
+            snake_image.head_right = pygame.image.load(path + 'head_right.png')
+            
+            snake_image.body_vertical = pygame.image.load(path + 'body_vertical.png')
+            snake_image.body_horizontal = pygame.image.load(path + 'body_horizontal.png')
+            
+            snake_image.body_bottomleft = pygame.image.load(path + 'body_bottomleft.png')
+            snake_image.body_bottomright = pygame.image.load(path + 'body_bottomright.png')
+            snake_image.body_topleft = pygame.image.load(path + 'body_topleft.png')
+            snake_image.body_topright = pygame.image.load(path + 'body_topright.png')
+            
+            snake_image.tail_up = pygame.image.load(path + 'tail_up.png')
+            snake_image.tail_down = pygame.image.load(path + 'tail_down.png')
+            snake_image.tail_left = pygame.image.load(path + 'tail_left.png')
+            snake_image.tail_right = pygame.image.load(path + 'tail_right.png')
+                
+            self.snake_images[color] = snake_image
+    
     def get_snake_color(self):
         color = self.snake_color.pop(0)
         self.snake_color.append(color)
         return color
 
     def draw_snake(self, snake_list, color):
-        for position in snake_list:
-            pygame.draw.rect(self.screen, color, [self.grid_pos + position[1] * self.snake_block, self.grid_pos + position[0] * self.snake_block, self.snake_block, self.snake_block])
+        if (len(snake_list) == 1):
+            self.screen.blit(self.scale_image(self.snake_images[color].head_up, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
+            return
         
+        # Draw head
+        if (snake_list[-1][0] - snake_list[-2][0] == 1):
+            self.screen.blit(self.scale_image(self.snake_images[color].head_down, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
+        elif (snake_list[-1][0] - snake_list[-2][0] == -1):
+            self.screen.blit(self.scale_image(self.snake_images[color].head_up, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
+        else:
+            if (snake_list[-1][1] - snake_list[-2][1] == 1):
+                self.screen.blit(self.scale_image(self.snake_images[color].head_right, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
+            elif (snake_list[-1][1] - snake_list[-2][1] == -1):
+                self.screen.blit(self.scale_image(self.snake_images[color].head_left, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))    
+        
+        # Draw tail
+        if (snake_list[0][0] - snake_list[1][0] == 1):
+            self.screen.blit(self.scale_image(self.snake_images[color].tail_down, self.snake_block, self.snake_block), (self.grid_pos + snake_list[0][1] * self.snake_block, self.grid_pos + snake_list[0][0] * self.snake_block))
+        elif (snake_list[0][0] - snake_list[1][0] == -1):
+            self.screen.blit(self.scale_image(self.snake_images[color].tail_up, self.snake_block, self.snake_block), (self.grid_pos + snake_list[0][1] * self.snake_block, self.grid_pos + snake_list[0][0] * self.snake_block))
+        else:
+            if (snake_list[0][1] - snake_list[1][1] == 1):
+                self.screen.blit(self.scale_image(self.snake_images[color].tail_right, self.snake_block, self.snake_block), (self.grid_pos + snake_list[0][1] * self.snake_block, self.grid_pos + snake_list[0][0] * self.snake_block))
+            elif (snake_list[0][1] - snake_list[1][1] == -1):
+                self.screen.blit(self.scale_image(self.snake_images[color].tail_left, self.snake_block, self.snake_block), (self.grid_pos + snake_list[0][1] * self.snake_block, self.grid_pos + snake_list[0][0] * self.snake_block))
+        
+        # Draw body        
+        for i in range(1, len(snake_list) - 1):
+            prev = snake_list[i - 1] 
+            curr = snake_list[i]     
+            next = snake_list[i + 1]  
+
+            if prev[0] == curr[0] == next[0]:
+                self.screen.blit(self.scale_image(self.snake_images[color].body_horizontal, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
+            elif prev[1] == curr[1] == next[1]:
+                self.screen.blit(self.scale_image(self.snake_images[color].body_vertical, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
+            # Edge
+            elif (prev[0] == curr[0] and curr[1] == next[1]) or (prev[1] == curr[1] and curr[0] == next[0]):
+                if ((prev[0] < curr[0] and (curr[1] < next[1] or (curr[1] == self.cols and next[1] == 0))) 
+                    or (next[0] < curr[0] and (curr[1] < prev[1] or (curr[1] == self.cols and prev[1] == 0)))):
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_topright, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
+                
+                elif ((prev[0] < curr[0] and (curr[1] > next[1] or (curr[1] == 0 and next[1] == self.cols))) 
+                    or (next[0] < curr[0] and (curr[1] > prev[1] or (curr[1] == 0 and prev[1] == self.cols)))):
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_topleft, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
+                    
+                elif ((prev[0] > curr[0] and (curr[1] > next[1] or (curr[1] == 0 and next[1] == self.cols))) 
+                    or (next[0] > curr[0] and (curr[1] > prev[1] or (curr[1] == 0 and prev[1] == self.cols)))):
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_bottomleft, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
+                    
+                elif ((prev[0] > curr[0] and (curr[1] < next[1] or (curr[1] == self.cols and next[1] == 0))) 
+                    or (next[0] > curr[0] and (curr[1] < prev[1] or (curr[1] == self.cols and prev[1] == 0)))):
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_bottomright, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
+
+
     def draw_obstacles(self, obstacles_position_list):
         obstacle_img = pygame.image.load(r'assets/images/brick.png')
         obstacle_img = pygame.transform.scale(obstacle_img, (self.snake_block, self.snake_block))
@@ -120,6 +201,9 @@ class UI:
         text_surface = font.render(text, True, color)
         text_rect = text_surface.get_rect(center=(self.width//2, y))
         return self.screen.blit(text_surface, text_rect)
+    
+    def scale_image(self, image, pixelx, pixely):
+        return pygame.transform.scale(image, (pixelx, pixely))
     
     def load_and_scale_img(self, scale_rate, img_path):
         image = pygame.image.load(img_path if img_path else self.default_img_path)
@@ -244,3 +328,23 @@ class Slider:
 
     def get_value(self):
         return int(self.value)
+
+class SnakeImage:
+    def __init__(self):
+        self.head_up = None
+        self.head_down = None
+        self.head_left = None
+        self.head_right = None
+        
+        self.body_vertical = None
+        self.body_horizontal = None
+        
+        self.body_bottomleft = None
+        self.body_bottomright = None
+        self.body_topleft = None
+        self.body_topright = None
+        
+        self.tail_up = None
+        self.tail_down = None
+        self.tail_left = None
+        self.tail_right = None

@@ -361,7 +361,7 @@ class Menu:
                     if not player_stuff['is_human']:
                         player_stuff['player'].algorithm = player_stuff['player'].pathfinding.path_algorithm[player_stuff['algo_cbb'].selected]
     
-                    player_stuff['player'].one_frame_data_process()
+                    player_stuff['player'].one_frame_data_process(len(player_stuff_list) == 1)
                     
                 # Update other snakes position for each snake (not inlucding itself) after process all data  
                 player_stuff = None

@@ -408,6 +408,7 @@ class Menu:
                             self.is_human_picked = False
                         temp_obstacles = temp_obstacles - player_stuff['player'].get_snake_as_obstacles()
                         self.delete_player(player_stuff_list, player_stuff)
+                        self.is_playing = False
             
             self.ui.clock.tick(self.speed_slider.get_value())
     
@@ -618,13 +619,13 @@ class Menu:
                 for player_stuff in player_stuff_list:
                     # Update temporary obstacles to process
                     player_stuff['player'].temp_obstacles = temp_obstacles.copy()
-                    player_stuff['player'].one_frame_data_process()
+                    player_stuff['player'].one_frame_data_process(is_alone=len(player_stuff_list) == 1)
                     
-                # Update other snakes position for each snake (not inlucding itself) after process all data  
+                # Update other snakes position for each snake (not inlucding itself) after process all data in order to check valid
                 player_stuff = None
                 for player_stuff in player_stuff_list:
                     # Create new map temporary obstacles
-                    # We need this set after last loop
+                    # We need this set to be full of all snake position after last loop
                     temp_obstacles.clear()
                     # For each other snake
                     for other_player_stuff in player_stuff_list:

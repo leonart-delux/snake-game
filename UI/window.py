@@ -95,18 +95,7 @@ class UI:
     def draw_snake(self, snake_list, color):
         if (len(snake_list) == 1):
             self.screen.blit(self.scale_image(self.snake_images[color].head_up, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
-            return
-        
-        # Draw head
-        if (snake_list[-1][0] - snake_list[-2][0] == 1):
-            self.screen.blit(self.scale_image(self.snake_images[color].head_down, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
-        elif (snake_list[-1][0] - snake_list[-2][0] == -1):
-            self.screen.blit(self.scale_image(self.snake_images[color].head_up, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
-        else:
-            if (snake_list[-1][1] - snake_list[-2][1] == 1):
-                self.screen.blit(self.scale_image(self.snake_images[color].head_right, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
-            elif (snake_list[-1][1] - snake_list[-2][1] == -1):
-                self.screen.blit(self.scale_image(self.snake_images[color].head_left, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))    
+            return 
         
         # Draw tail
         if (snake_list[0][0] - snake_list[1][0] == 1):
@@ -121,32 +110,58 @@ class UI:
         
         # Draw body        
         for i in range(1, len(snake_list) - 1):
-            prev = snake_list[i - 1] 
-            curr = snake_list[i]     
-            next = snake_list[i + 1]  
+            prev_direction = (
+                (snake_list[i][0] - snake_list[i - 1][0]) % self.rows,
+                (snake_list[i][1] - snake_list[i - 1][1]) % self.cols,
+            )
+            curr_direction = (
+                (snake_list[i + 1][0] - snake_list[i][0]) % self.rows,
+                (snake_list[i + 1][1] - snake_list[i][1]) % self.cols,
+            )
 
-            if prev[0] == curr[0] == next[0]:
-                self.screen.blit(self.scale_image(self.snake_images[color].body_horizontal, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
-            elif prev[1] == curr[1] == next[1]:
-                self.screen.blit(self.scale_image(self.snake_images[color].body_vertical, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
-            # Edge
-            elif (prev[0] == curr[0] and curr[1] == next[1]) or (prev[1] == curr[1] and curr[0] == next[0]):
-                if ((prev[0] < curr[0] and (curr[1] < next[1] or (curr[1] == self.cols and next[1] == 0))) 
-                    or (next[0] < curr[0] and (curr[1] < prev[1] or (curr[1] == self.cols and prev[1] == 0)))):
-                    self.screen.blit(self.scale_image(self.snake_images[color].body_topright, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
-                
-                elif ((prev[0] < curr[0] and (curr[1] > next[1] or (curr[1] == 0 and next[1] == self.cols))) 
-                    or (next[0] < curr[0] and (curr[1] > prev[1] or (curr[1] == 0 and prev[1] == self.cols)))):
-                    self.screen.blit(self.scale_image(self.snake_images[color].body_topleft, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
-                    
-                elif ((prev[0] > curr[0] and (curr[1] > next[1] or (curr[1] == 0 and next[1] == self.cols))) 
-                    or (next[0] > curr[0] and (curr[1] > prev[1] or (curr[1] == 0 and prev[1] == self.cols)))):
-                    self.screen.blit(self.scale_image(self.snake_images[color].body_bottomleft, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
-                    
-                elif ((prev[0] > curr[0] and (curr[1] < next[1] or (curr[1] == self.cols and next[1] == 0))) 
-                    or (next[0] > curr[0] and (curr[1] < prev[1] or (curr[1] == self.cols and prev[1] == 0)))):
-                    self.screen.blit(self.scale_image(self.snake_images[color].body_bottomright, self.snake_block, self.snake_block), (self.grid_pos + curr[1] * self.snake_block, self.grid_pos + curr[0] * self.snake_block))
+            # Adjust range in [-1, 0, 1]
+            prev_direction = (
+                prev_direction[0] if prev_direction[0] <= 1 else prev_direction[0] - self.rows,
+                prev_direction[1] if prev_direction[1] <= 1 else prev_direction[1] - self.cols,
+            )
+            curr_direction = (
+                curr_direction[0] if curr_direction[0] <= 1 else curr_direction[0] - self.rows,
+                curr_direction[1] if curr_direction[1] <= 1 else curr_direction[1] - self.cols,
+            )
 
+            # 3 parts in 1 line 
+            if prev_direction == curr_direction:
+                # Horizontal
+                if prev_direction[0] == 0:
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_horizontal, self.snake_block, self.snake_block), (self.grid_pos + snake_list[i][1] * self.snake_block, self.grid_pos + snake_list[i][0] * self.snake_block))
+                # Vertical
+                elif prev_direction == curr_direction and prev_direction[1] == 0:
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_vertical, self.snake_block, self.snake_block), (self.grid_pos + snake_list[i][1] * self.snake_block, self.grid_pos + snake_list[i][0] * self.snake_block))
+            
+            # 3 parts form a curve
+            else:
+                if (prev_direction == (0, 1) and curr_direction == (-1, 0)) or (prev_direction == (1, 0) and curr_direction == (0, -1)):
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_topleft, self.snake_block, self.snake_block), (self.grid_pos + snake_list[i][1] * self.snake_block, self.grid_pos + snake_list[i][0] * self.snake_block))
+                    
+                elif (prev_direction == (0, -1) and curr_direction == (-1, 0)) or (prev_direction == (1, 0) and curr_direction == (0, 1)):
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_topright, self.snake_block, self.snake_block), (self.grid_pos + snake_list[i][1] * self.snake_block, self.grid_pos + snake_list[i][0] * self.snake_block))
+                    
+                elif (prev_direction == (0, 1) and curr_direction == (1, 0)) or (prev_direction == (-1, 0) and curr_direction == (0, -1)):
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_bottomleft, self.snake_block, self.snake_block), (self.grid_pos + snake_list[i][1] * self.snake_block, self.grid_pos + snake_list[i][0] * self.snake_block))
+                    
+                elif (prev_direction == (0, -1) and curr_direction == (1, 0)) or (prev_direction == (-1, 0) and curr_direction == (0, 1)):
+                    self.screen.blit(self.scale_image(self.snake_images[color].body_bottomright, self.snake_block, self.snake_block), (self.grid_pos + snake_list[i][1] * self.snake_block, self.grid_pos + snake_list[i][0] * self.snake_block))
+
+        # Draw head
+        if (snake_list[-1][0] - snake_list[-2][0] == 1):
+            self.screen.blit(self.scale_image(self.snake_images[color].head_down, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
+        elif (snake_list[-1][0] - snake_list[-2][0] == -1):
+            self.screen.blit(self.scale_image(self.snake_images[color].head_up, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
+        else:
+            if (snake_list[-1][1] - snake_list[-2][1] == 1):
+                self.screen.blit(self.scale_image(self.snake_images[color].head_right, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))
+            elif (snake_list[-1][1] - snake_list[-2][1] == -1):
+                self.screen.blit(self.scale_image(self.snake_images[color].head_left, self.snake_block, self.snake_block), (self.grid_pos + snake_list[-1][1] * self.snake_block, self.grid_pos + snake_list[-1][0] * self.snake_block))   
 
     def draw_obstacles(self, obstacles_position_list):
         obstacle_img = pygame.image.load(r'assets/images/brick.png')

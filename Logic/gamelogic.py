@@ -19,7 +19,7 @@ class BaseGameLogic:
         self.head_row, self.head_col = self.generate_random_snake_initial_position()
         
         self.snake_list = [(self.head_row, self.head_col)]
-        self.length_of_snake = 1
+        self.length_of_snake = 2
         self.score = 0
         self.game_over = False
         

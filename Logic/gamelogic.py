@@ -1,106 +1,138 @@
 import random
 import pygame
+from Logic.algorithms import Pathfinding
 
-class GameLogic:
-    def __init__(self, ui, mode):
-        self.ui = ui
-        self.snake_block = 10
-        self.snake_speed = 15
-        self.clock = pygame.time.Clock()
-        self.reset_game()
-        self.mode = mode  
+class BaseGameLogic:
+    def __init__(self, obstacles, map_size):
+        self.const_obstacles = obstacles
+        self.temp_obstacles = set()     # Temporary obstacles on map (snakes)
+        self.numb_rows, self.numb_cols = map_size
         
-    def reset_game(self):
-        self.x1 = self.ui.width / 2
-        self.y1 = self.ui.height / 2
-        self.x1_change = 0
-        self.y1_change = 0
-        self.snake_list = []
-        self.length_of_snake = 1
+        # all valid positions map, haven't include snake positions because it's dynamic
+        self.valid_positions = {(row, col) for row in range(map_size[0]) for col in range(map_size[1])} - obstacles
+        self.snake_speed = 20
+        self.is_initialized = False
+
+    def initialize(self):
+        # Set start position
+        self.head_row, self.head_col = self.generate_random_snake_initial_position()
+        
+        self.snake_list = [(self.head_row, self.head_col)]
+        self.length_of_snake = 2
+        self.score = 0
         self.game_over = False
-        self.game_close = False
-        self.foodx, self.foody = self.random_food()
+        
+        self.food_row, self.food_col = self.generate_random_food_position()
+        self.move_direction = [-1, 0]
+        self.is_initialized = True
+    
+    def generate_random_snake_initial_position(self):
+        temp_valid_positions = self.valid_positions - self.temp_obstacles
+        return random.choice(list(temp_valid_positions)) if temp_valid_positions else None
+                                    
+    def generate_random_food_position(self):
+        # Don't spam food on snake
+        temp_valid_positions = self.valid_positions - self.temp_obstacles - set(self.snake_list)
+        return random.choice(list(temp_valid_positions)) if temp_valid_positions else None
+    
+    def get_snake_as_obstacles(self):
+        """
+        Get snake and food as obstacles
+        """
+        snake_obstacles = set(tuple(block) for block in self.snake_list)
+        snake_obstacles.add((self.food_row, self.food_col))
+        return snake_obstacles
+      
+    def get_next_snake_image_as_ostacles(self):
+        """
+        Return images of snake in next process move in all available directions
+        May include obstacles accross boundaries, just don't care
+        This function to prevent other snakes hit this snake
+        """
+        next_snake_images = set(tuple(block) for block in self.snake_list)
+        next_heads = set()
+        for dir_x, dir_y in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            next_head_row = self.head_row + dir_x
+            next_head_col = self.head_col + dir_y
+            next_heads.add((next_head_row, next_head_col))
+            
+        next_snake_images.update(next_heads)
+        
+        # Check for food
+        # If length == 1
+        # If next move can eat food, then tail is longer, just return the whole current snake and next heads
+        if self.length_of_snake == 1 or abs(self.head_row - self.food_row) + abs(self.head_col - self.food_col) == 1:
+            return next_snake_images
+        
+        # If no food, remove tail
+        next_snake_images.remove(self.snake_list[0])
+        return next_snake_images
 
-    def random_food(self):
-        while True:
-            foodx = round(random.randrange(0, self.ui.width - self.snake_block) / 10.0) * 10.0
-            foody = round(random.randrange(0, self.ui.height - self.snake_block) / 10.0) * 10.0
-            if (foodx, foody) not in self.snake_list: 
-                return foodx, foody
+    def remove_food_in_temp_obstacles(self):
+        if (self.food_row, self.food_col) in self.temp_obstacles:
+            self.temp_obstacles.remove((self.food_row, self.food_col))
 
-    def game_loop(self):
-        while not self.game_over:
-            while self.game_close:
-                self.ui.clear_screen()
-                self.ui.display_message("You lose! Press Q-Quit or C-Play Again")
-                self.ui.refresh_screen()
-                self.handle_game_close_events()
-
-            self.handle_events()
-            self.update_snake_position()
-            self.check_boundaries()
-            self.update_screen()
-
-            self.clock.tick(self.snake_speed)
-
-    def handle_game_close_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    self.game_over = True
-                    self.game_close = False
-                if event.key == pygame.K_c:
-                    self.reset_game()
-
-    def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.game_over = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT and self.x1_change != self.snake_block:
-                    self.x1_change = -self.snake_block
-                    self.y1_change = 0
-                elif event.key == pygame.K_RIGHT and self.x1_change != -self.snake_block:
-                    self.x1_change = self.snake_block
-                    self.y1_change = 0
-                elif event.key == pygame.K_UP and self.y1_change != self.snake_block:
-                    self.y1_change = -self.snake_block
-                    self.x1_change = 0
-                elif event.key == pygame.K_DOWN and self.y1_change != -self.snake_block:
-                    self.y1_change = self.snake_block
-                    self.x1_change = 0
+    def remov_next_snake_head_in_temp_obstacles(self):
+        """
+        Remove NEXT snake head position in temporary obstacles list
+        """
+        if (self.length_of_snake == 1):
+            self.temp_obstacles.clear()
+            return
+        
+        # In case moving left or right
+        if (self.move_direction[0] == 0):
+            # Remove above and below position of snake head in temp_obstacles
+            above_pos = (self.head_row + 1, self.head_col)
+            if above_pos in self.temp_obstacles and above_pos not in self.snake_list:
+                self.temp_obstacles.remove(above_pos)
+                
+            below_pos = (self.head_row - 1, self.head_col)
+            if below_pos in self.temp_obstacles and below_pos not in self.snake_list:
+                self.temp_obstacles.remove(below_pos)
+                
+        # In case moving up or down
+        else:
+            # Remove left and right position of snake head in temp_obstacles
+            left_pos = (self.head_row, self.head_col - 1)
+            if left_pos in self.temp_obstacles and left_pos not in self.snake_list:
+                self.temp_obstacles.remove((self.head_row, self.head_col - 1))
+            
+            right_pos = (self.head_row, self.head_col + 1)
+            if right_pos in self.temp_obstacles and right_pos not in self.snake_list:
+                self.temp_obstacles.remove(right_pos)
+                
+        # Lastly, remove next head position if moving in current direction
+        self.temp_obstacles.remove((self.head_row + self.move_direction[0], self.head_col + self.move_direction[1]))
 
     def update_snake_position(self):
-        self.x1 += self.x1_change
-        self.y1 += self.y1_change
+        self.head_row = (self.head_row + self.move_direction[0]) % self.numb_rows
+        self.head_col = (self.head_col + self.move_direction[1]) % self.numb_cols
+        
+        self.check_eat_food()
 
-    def check_boundaries(self):
-        if self.x1 >= self.ui.width:
-            self.x1 = 0
-        elif self.x1 < 0:
-            self.x1 = self.ui.width - self.snake_block
-        if self.y1 >= self.ui.height:
-            self.y1 = 0
-        elif self.y1 < 0:
-            self.y1 = self.ui.height - self.snake_block
-
-    def update_screen(self):
-        self.ui.clear_screen()
-        self.ui.draw_food(self.foodx, self.foody, self.snake_block)
-
-        snake_head = [self.x1, self.y1]
-        self.snake_list.append(snake_head)
+        # Update new head position
+        self.snake_list.append((self.head_row, self.head_col))
+        # Check for length (in case no food is eaten or food is just eaten)
         if len(self.snake_list) > self.length_of_snake:
+            # Del first element = tail of snake when no food is eaten, snake is moving only 
             del self.snake_list[0]
+    
+    def check_validation(self):      
+        self.check_collisions()
+                
+    def check_collisions(self):
+        # Obstacles - Other snakes - Its body
+        if (self.head_row, self.head_col) in (self.temp_obstacles | self.const_obstacles) or (self.head_row, self.head_col) in self.snake_list[:-1]:
+            self.game_over = True
 
-        for x in self.snake_list[:-1]:
-            if x == snake_head:
-                self.game_close = True
-
-        self.ui.draw_snake(self.snake_block, self.snake_list)
-        self.ui.refresh_screen()
-
-        # Kiểm tra ăn thức ăn
-        if self.x1 == self.foodx and self.y1 == self.foody:
-            self.foodx, self.foody = self.random_food()
+    def check_eat_food(self):
+        if self.head_row == self.food_row and self.head_col == self.food_col:
+            # Update new food position and some states
+            self.food_row, self.food_col = self.generate_random_food_position()
             self.length_of_snake += 1
+            self.score += 1
+            # Clear old path
+            self.path = []
+
+

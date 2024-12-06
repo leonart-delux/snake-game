@@ -1,14 +1,14 @@
-import pygame
-from UI.window import UI
-from Logic.gamelogic import GameLogic
+import pygame 
+from UI.window import *
+from Logic.gamelogic import *
 from menu import Menu
 
 def main():
     pygame.init()
 
-    ui = UI()
+    base_ui = UI()
 
-    menu = Menu(ui)
+    menu = Menu(base_ui)
 
     menu.run_menu()
 
